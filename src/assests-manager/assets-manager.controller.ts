@@ -4,7 +4,6 @@ import { ApplicationAsset } from "./assets-manager.entity";
 import { multerMiddleware } from "../multer-config";
 import express from "express";
 
-
 @Route("api/assets")
 @Tags("Efficacy Assets Manager APIs")
 export class AssetsManagerController {
@@ -20,9 +19,9 @@ export class AssetsManagerController {
         // @FormField() tags?: string[],
         // console.log(request.file, request.body.appName, request.body.description, request.body.tags);
         return new AssetsManagerService().create(
-            request.file, 
-            request.body.appName, 
-            request.body.description, 
+            request.file,
+            request.body.appName,
+            request.body.description,
             request.body.tags);
     }
 

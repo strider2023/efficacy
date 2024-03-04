@@ -7,42 +7,50 @@ export class SchemaBuilder {
 
     constructor() { }
 
-    public async createTable(request: CreateCollection): Promise<string> {
-        await knexConfig.schema.dropTableIfExists(`efficacy_${request.name}`);
+    public async createTable(appName: string, request: CreateCollection): Promise<string> {
+        const tableName = `${appName}_${request.name}`;
+        let uniqueColumns: string[] = [];
+        await knexConfig.schema.dropTableIfExists(tableName);
         await knexConfig.schema.withSchema('public')
-            .createTable(`efficacy_${request.name}`, function (t) {
+            .createTable(tableName, function (t) {
                 t.increments('id').primary();
                 for (const property of request.properties) {
+                    let tableProp;
                     switch (property.propertyType) {
                         case PropertyTypes.STRING:
-                            t.string(property.propertyName);
+                            if (property.isEnum) {
+                                tableProp = t.enu(property.propertyName, property.enumValues);
+                            } else {
+                                tableProp = t.string(property.propertyName);
+                            }
                             break;
                         case PropertyTypes.INTEGER:
-                            t.integer(property.propertyName);
+                            tableProp = t.integer(property.propertyName);
                             break;
                         case PropertyTypes.DATE:
-                            t.date(property.propertyName);
+                            tableProp = t.date(property.propertyName);
                             break;
                         case PropertyTypes.DATETIME:
-                            t.dateTime(property.propertyName);
+                            tableProp = t.dateTime(property.propertyName);
                             break;
                         case PropertyTypes.BOOLEAN:
-                            t.boolean(property.propertyName);
+                            tableProp = t.boolean(property.propertyName);
                             break;
                         case PropertyTypes.FLOAT:
-                            t.float(property.propertyName);
+                            tableProp = t.float(property.propertyName);
                             break;
                         case PropertyTypes.ASSET:
-                            t.string(property.propertyName);
+                            tableProp = t.string(property.propertyName);
                             break;
                     }
-                    // if (!property.required) {
-                    //     t.setNullable(property.propertyName);
-                    // }
+                    property.required ? tableProp.notNullable() : tableProp.nullable();
+                    if (property.isUnique) {
+                        tableProp.unique();
+                    }
                 }
-                t.timestamps();
+                t.timestamps({ useCamelCase: true, useTimestamps: true, defaultToNow: true });
             });
-        return `efficacy_${request.name}`;
+        return tableName;
     }
 
     public async updateTable(request: string) {

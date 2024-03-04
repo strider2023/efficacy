@@ -37,6 +37,9 @@ export class CollectionMetadataProperty extends AppBaseEntity {
     @Column({ nullable: false })
     required: boolean
 
+    @Column({ nullable: true, default: false })
+    isUnique?: boolean;
+
     @Column({ nullable: true })
     default?: string;
 

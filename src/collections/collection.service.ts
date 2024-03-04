@@ -33,11 +33,12 @@ export class CollectionService {
 
 
     public async create(request: CreateCollection): Promise<Collection> {
-        const sb = new SchemaBuilder();
-        const schemaName = await sb.createTable(request);
-        
         // Create new collection
         const app = await Application.findOneBy({ name: request.application });
+
+        const sb = new SchemaBuilder();
+        const schemaName = await sb.createTable(app.name, request);
+
         const existingCollection = await Collection.findOneBy({ application: app, name: request.name });
         const collection = existingCollection ? existingCollection : new Collection();
         collection.name = request.name;
@@ -95,6 +96,7 @@ export class CollectionService {
         mp.required = prop.required;
         mp.description = prop.description;
         mp.default = prop.default;
+        mp.isUnique = prop.isUnique;
         mp.maximum = prop.maximum;
         mp.minimum = prop.minimum;
         mp.pattern = prop.pattern;

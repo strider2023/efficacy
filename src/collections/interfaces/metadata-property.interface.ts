@@ -6,6 +6,7 @@ export interface MedataProperty {
     children?: MedataProperty[]
     required: boolean
     default?: string;
+    isUnique?: boolean;
     maximum?: number;
     minimum?: number;
     pattern?: string;

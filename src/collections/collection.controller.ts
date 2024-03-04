@@ -1,5 +1,5 @@
 
-import { Body, Get, Path, Post, Route, Tags } from "tsoa";
+import { Body, Example, Get, Path, Post, Route, Tags } from "tsoa";
 import { CreateCollection } from "./interfaces/create-collection.interface";
 import { Collection } from "./entities/collection.entity";
 import { CollectionService } from "./collection.service";
@@ -24,6 +24,55 @@ export class CollectionController {
         return new CollectionService().getCollectionProperties(collectioName);
     }
 
+    @Example<CreateCollection>({
+        "name": "User",
+        "application": "test",
+        "properties": [
+            {
+                "propertyName": "firstname",
+                "propertyType": "string",
+                "required": true
+            },
+            {
+                "propertyName": "middlename",
+                "propertyType": "string",
+                "required": false
+            },
+            {
+                "propertyName": "lastname",
+                "propertyType": "string",
+                "required": true
+            },
+            {
+                "propertyName": "gender",
+                "propertyType": "string",
+                "required": false,
+                "isEnum": true,
+                "enumValues": [
+                    "Male",
+                    "Female",
+                    "Neutral"
+                ]
+            },
+            {
+                "propertyName": "email",
+                "propertyType": "string",
+                "required": true
+            },
+            {
+                "propertyName": "dateOfBirth",
+                "propertyType": "date",
+                "required": true
+            }
+        ]
+    })
+    @Post()
+    public async createCollection(
+        @Body() request: CreateCollection)
+        : Promise<Collection> {
+        return new CollectionService().create(request);
+    }
+
     @Post("{collectioName}/item")
     public async createCollectionItem(
         @Path() collectioName: string,
@@ -38,12 +87,5 @@ export class CollectionController {
         @Body() request: CollectionItemQuery
     ): Promise<any> {
         return new CollectionService().getCollectionItems(collectioName, request);
-    }
-
-    @Post()
-    public async createCollection(
-        @Body() request: CreateCollection)
-        : Promise<Collection> {
-        return new CollectionService().create(request);
     }
 }
