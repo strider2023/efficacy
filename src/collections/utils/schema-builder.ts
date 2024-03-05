@@ -8,12 +8,11 @@ export class SchemaBuilder {
     constructor() { }
 
     public async createTable(appName: string, request: CreateCollection): Promise<string> {
-        const tableName = `${appName}_${request.name}`;
-        let uniqueColumns: string[] = [];
+        const tableName = request.schemaName ? request.schemaName : `${appName}_${request.name}`;
         await knexConfig.schema.dropTableIfExists(tableName);
         await knexConfig.schema.withSchema('public')
             .createTable(tableName, function (t) {
-                t.increments('id').primary();
+                t.uuid("id", {primaryKey: true}).defaultTo(knexConfig.raw("uuid_generate_v4()"));
                 for (const property of request.properties) {
                     let tableProp;
                     switch (property.propertyType) {

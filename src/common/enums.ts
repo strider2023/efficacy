@@ -4,6 +4,12 @@ export enum UserRole {
     USER = "user",
 }
 
+export enum ApplicationAccessType {
+    PRIVATE = "private",
+    RESTRICTED = "restricted",
+    PUBLIC = "public",
+}
+
 export enum Status {
     ACTIVE = "active",
     DELETED = "deleted",
@@ -19,5 +25,4 @@ export enum PropertyTypes {
     ASSET = 'asset',
     DATE = 'date',
     DATETIME = 'datetime',
-  }
-  
+}

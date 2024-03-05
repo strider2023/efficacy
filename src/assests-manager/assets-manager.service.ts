@@ -4,13 +4,25 @@ import { ApplicationAsset } from "./assets-manager.entity";
 
 export class AssetsManagerService {
 
-    public async getAll(): Promise<Application[]> {
-        const applications = await Application.find({
+    public async getAllAssetsByApplication(appName: string): Promise<ApplicationAsset[]> {
+        const app = await Application.findOneBy({ name: appName });
+        const assets = await ApplicationAsset.find({
             where: {
+                application: app,
                 status: Status.ACTIVE
             }
         });
-        return applications;
+        return assets;
+    }
+
+    public async getByAssetId(assetId: string): Promise<ApplicationAsset> {
+        const asset = await ApplicationAsset.findOne({
+            where: {
+                assetId: assetId,
+                status: Status.ACTIVE
+            }
+        });
+        return asset;
     }
 
     public async create(file: Express.Multer.File,

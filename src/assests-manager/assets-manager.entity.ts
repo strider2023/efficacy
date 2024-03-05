@@ -6,7 +6,7 @@ import {
 import { AppBaseEntity } from "../common/base.entity"
 import { Application } from "../application/application.entity";
 
-@Entity({ name: "application_asset" })
+@Entity({ name: "efficacy_assets" })
 export class ApplicationAsset extends AppBaseEntity {
 
     @Column({ nullable: false, unique: true })

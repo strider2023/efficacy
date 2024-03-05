@@ -7,6 +7,10 @@ import * as swaggerUi from "swagger-ui-express";
 import { RegisterRoutes } from "../build/routes";
 import { ValidateError } from "tsoa";
 import * as morgan from "morgan";
+import { multerMiddleware } from "./multer-config";
+
+import * as path from "path";
+import { AssetsManagerService } from "./assests-manager/assets-manager.service";
 
 dotenv.config();
 
@@ -15,6 +19,7 @@ const { PORT = 3000 } = process.env;
 const app = express();
 app.use(express.json());
 app.use(morgan("tiny"));
+app.use(multerMiddleware);
 app.use(express.static("public"));
 app.use("/api-docs", swaggerUi.serve, async (_req: Request, res: Response) => {
     return res.send(
@@ -22,12 +27,31 @@ app.use("/api-docs", swaggerUi.serve, async (_req: Request, res: Response) => {
     );
 });
 
-app.use(function errorHandler(
+RegisterRoutes(app);
+
+
+app.get("/api/assets/:assetId", async (req, res) => {
+    const assetDetails = await new AssetsManagerService().getByAssetId(req.params.assetId);
+    const filePath = path.join(__dirname, '../uploads/', req.params.assetId);
+    console.log(filePath, assetDetails);
+    res.status(200);
+    res.setHeader('Content-disposition', 'attachment; filename=' + assetDetails.filename);
+    res.setHeader('Content-type', assetDetails.mimetype);
+    res.download(filePath, assetDetails.filename);
+});
+
+app.use((_req, res: Response) => {
+    res.status(404).send({
+        message: "Not Found",
+    });
+});
+
+app.use((
     err: unknown,
     req: Request,
     res: Response,
     next: NextFunction
-): Response | void {
+): Response | void => {
     if (err instanceof ValidateError) {
         console.warn(`Caught Validation Error for ${req.path}:`, err.fields);
         return res.status(422).json({
@@ -42,14 +66,6 @@ app.use(function errorHandler(
     }
 
     next();
-});
-
-RegisterRoutes(app);
-
-app.use(function notFoundHandler(_req, res: Response) {
-    res.status(404).send({
-        message: "Not Found",
-    });
 });
 
 AppDataSource.initialize().then(async () => {

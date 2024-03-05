@@ -8,7 +8,7 @@ import { Collection } from "./collection.entity"
 import { PropertyTypes } from "../../common/enums"
 import { AppBaseEntity } from "../../common/base.entity"
 
-@Entity({ name: "metadata_property" })
+@Entity({ name: "efficacy_metadata_property" })
 export class CollectionMetadataProperty extends AppBaseEntity {
 
     @ManyToOne(() => Collection, (cm) => cm.name)

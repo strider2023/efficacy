@@ -8,7 +8,7 @@ import { CollectionMetadataProperty } from "./collection-metadata-property.entit
 import { AppBaseEntity } from "../../common/base.entity"
 import { Application } from "../../application/application.entity"
 
-@Entity({ name: "collection" })
+@Entity({ name: "efficacy_collection" })
 export class Collection extends AppBaseEntity {
 
     @Column({ nullable: false })

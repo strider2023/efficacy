@@ -1,8 +1,9 @@
 import { MedataProperty } from "./metadata-property.interface"
 
 export interface CreateCollection {
-    name: string
-    description?: string
     application: string
+    name: string
     properties: MedataProperty[]
+    description?: string
+    schemaName?: string
 }

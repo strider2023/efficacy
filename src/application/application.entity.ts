@@ -5,8 +5,10 @@ import {
 } from "typeorm"
 import { AppBaseEntity } from "../common/base.entity"
 import { Collection } from "../collections/entities/collection.entity"
+import { ApplicationAccessType } from "../common/enums";
+import { ApplicationAsset } from "../assests-manager/assets-manager.entity";
 
-@Entity({ name: "application" })
+@Entity({ name: "efficacy_application" })
 export class Application extends AppBaseEntity {
 
     @Column({ nullable: false, unique: true })
@@ -18,6 +20,17 @@ export class Application extends AppBaseEntity {
     @Column()
     description?: string;
 
-    @OneToMany(() => Collection, (c) => c.id, { nullable: true })
-    collections?: Collection[];
+    @Column({
+        type: "enum",
+        enum: ApplicationAccessType,
+        default: ApplicationAccessType.PUBLIC,
+        nullable: false,
+    })
+    accessType: string
+
+    @OneToMany(() => Collection, (c) => c.name)
+    collections: Collection[]
+
+    @OneToMany(() => ApplicationAsset, (as) => as.assetId)
+    assets: ApplicationAsset[]
 }

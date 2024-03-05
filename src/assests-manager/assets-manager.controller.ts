@@ -1,34 +1,32 @@
-import { Post, Route, Tags, Path, Get, Middlewares, Request } from "tsoa";
+import { Post, Route, Tags, Path, Get, Request } from "tsoa";
 import { AssetsManagerService } from "./assets-manager.service";
 import { ApplicationAsset } from "./assets-manager.entity";
-import { multerMiddleware } from "../multer-config";
 import express from "express";
 
 @Route("api/assets")
 @Tags("Efficacy Assets Manager APIs")
 export class AssetsManagerController {
 
+    @Get("application/{appName}")
+    public async getFilesByApplication(
+        @Path() appName: string
+    ): Promise<ApplicationAsset[]> {
+        return new AssetsManagerService().getAllAssetsByApplication(appName);
+    }
+
     @Post("upload")
-    @Middlewares(multerMiddleware)
+    // @Middlewares(multerMiddleware)
     public async uploadFile(
-        @Request() request: express.Request
-    ): Promise<ApplicationAsset> {
+        @Request() request: express.Request,
         // @UploadedFile() file: Express.Multer.File,
         // @FormField() appName: string,
         // @FormField() description?: string,
         // @FormField() tags?: string[],
-        // console.log(request.file, request.body.appName, request.body.description, request.body.tags);
+    ): Promise<ApplicationAsset> {
         return new AssetsManagerService().create(
             request.file,
             request.body.appName,
             request.body.description,
             request.body.tags);
-    }
-
-    @Get("{assetId}")
-    public async getFile(
-        @Path() assetId: string,
-    ): Promise<void> {
-        console.log(assetId);
     }
 }
