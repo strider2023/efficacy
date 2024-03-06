@@ -1,20 +1,21 @@
 
-import { Body, Example, Get, Path, Post, Route, Tags } from "tsoa";
+import { Body, Example, Get, Path, Post, Queries, Route, Tags } from "tsoa";
 import { CreateCollection } from "./interfaces/create-collection.interface";
 import { Collection } from "./entities/collection.entity";
 import { CollectionService } from "./collection.service";
 import { CollectionMetadataProperty } from "./entities/collection-metadata-property.entity";
 import { CollectionItemQuery } from "./interfaces/create-item.interface";
+import { CollectionQueryParams } from "./interfaces/collection-query.interface";
 
 @Route("api/collection")
 @Tags("Efficacy Collection APIs")
 export class CollectionController {
 
-    @Get("{appName}")
+    @Get()
     public async getCollections(
-        @Path() appName: string
+        @Queries() queryParams: CollectionQueryParams
     ): Promise<Collection[]> {
-        return new CollectionService().getAllByAppId(appName);
+        return new CollectionService().getAllByAppId(queryParams);
     }
 
     @Get("{collectioName}/properties")

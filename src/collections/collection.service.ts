@@ -6,15 +6,20 @@ import { MedataProperty } from "./interfaces/metadata-property.interface";
 import { Status } from "../common/enums";
 import { SchemaBuilder } from "./utils/schema-builder";
 import { CollectionItemQuery } from "./interfaces/create-item.interface";
+import { CollectionQueryParams } from "./interfaces/collection-query.interface";
 
 export class CollectionService {
 
-    public async getAllByAppId(appName: string): Promise<Collection[]> {
-        const app = await Application.findOneBy({ name: appName });
+    public async getAllByAppId(queryParams: CollectionQueryParams): Promise<Collection[]> {
+        const query = { status: Status.ACTIVE }
+        if (queryParams.app) {
+            const app = await Application.findOneBy({name: queryParams.app});
+            query['application'] = app
+        }
         const collections = await Collection.find({
-            where: {
-                status: Status.ACTIVE,
-                application: app
+            where: query,
+            relations: {
+                application: true
             }
         });
         return collections;
@@ -59,7 +64,7 @@ export class CollectionService {
     }
 
     public async createCollectionItem(
-        collectioName: string, 
+        collectioName: string,
         request: Record<string, any>) {
         // Check if collection exists
         const collection = await Collection.findOneBy({ name: collectioName, status: Status.ACTIVE });
@@ -71,7 +76,7 @@ export class CollectionService {
     }
 
     public async getCollectionItems(
-        collectioName: string, 
+        collectioName: string,
         request: CollectionItemQuery): Promise<any> {
         // Check if collection exists
         const collection = await Collection.findOneBy({ name: collectioName, status: Status.ACTIVE });
