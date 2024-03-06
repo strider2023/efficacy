@@ -31,21 +31,25 @@ export class CollectionController {
         "properties": [
             {
                 "propertyName": "firstname",
+                "displayName": "First Name",
                 "propertyType": "string",
                 "required": true
             },
             {
                 "propertyName": "middlename",
+                "displayName": "Middle Name",
                 "propertyType": "string",
                 "required": false
             },
             {
                 "propertyName": "lastname",
+                "displayName": "Last Name",
                 "propertyType": "string",
                 "required": true
             },
             {
                 "propertyName": "gender",
+                "displayName": "Gender",
                 "propertyType": "string",
                 "required": false,
                 "isEnum": true,
@@ -57,11 +61,13 @@ export class CollectionController {
             },
             {
                 "propertyName": "email",
+                "displayName": "Email",
                 "propertyType": "string",
                 "required": true
             },
             {
                 "propertyName": "dateOfBirth",
+                "displayName": "Date of Birth",
                 "propertyType": "date",
                 "required": true
             }
@@ -82,10 +88,10 @@ export class CollectionController {
         return new CollectionService().createCollectionItem(collectioName, request);
     }
 
-    @Post("{collectioName}/items")
+    @Get("{collectioName}/items")
     public async getCollectionItems(
         @Path() collectioName: string,
-        @Body() request: CollectionItemQuery
+        @Queries() request: CollectionItemQuery
     ): Promise<any> {
         return new CollectionService().getCollectionItems(collectioName, request);
     }

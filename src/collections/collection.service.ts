@@ -29,10 +29,12 @@ export class CollectionService {
         const collection = await Collection.findOneBy({ name: collectioName, status: Status.ACTIVE });
         const properties = await CollectionMetadataProperty.find({
             where: {
+                collection: {
+                    id: collection.id
+                },
                 status: Status.ACTIVE,
-                collection: collection,
             }
-        })
+        });
         return properties;
     }
 
@@ -97,7 +99,7 @@ export class CollectionService {
         const mp = existingProperty ? existingProperty : new CollectionMetadataProperty();
         mp.collection = collection;
         mp.propertyName = prop.propertyName;
-        mp.propertyType = prop.propertyType;
+        mp.displayName = prop.displayName;
         mp.required = prop.required;
         mp.description = prop.description;
         mp.default = prop.default;

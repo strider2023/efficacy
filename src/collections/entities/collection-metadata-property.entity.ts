@@ -17,6 +17,9 @@ export class CollectionMetadataProperty extends AppBaseEntity {
     @Column({ nullable: false })
     propertyName: string
 
+    @Column({ nullable: false })
+    displayName: string
+
     @Column({ nullable: true })
     description?: string
 

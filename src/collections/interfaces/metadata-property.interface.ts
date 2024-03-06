@@ -1,5 +1,6 @@
 export interface MedataProperty {
     propertyName: string
+    displayName: string
     description?: string
     propertyType: string
     parent?: MedataProperty
