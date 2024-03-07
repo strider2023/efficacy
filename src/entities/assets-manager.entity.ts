@@ -1,12 +1,10 @@
 import {
     Entity,
-    Column,
-    ManyToOne
+    Column
 } from "typeorm"
-import { AppBaseEntity } from "../common/base.entity"
-import { Application } from "../application/application.entity";
+import { AppBaseEntity } from "./base.entity"
 
-@Entity({ name: "efficacy_assets" })
+@Entity({ name: "efficacy_assets", schema: "efficacy" })
 export class ApplicationAsset extends AppBaseEntity {
 
     @Column({ nullable: false, unique: true })
@@ -26,7 +24,4 @@ export class ApplicationAsset extends AppBaseEntity {
 
     @Column({ nullable: false })
     filesize: number;
-
-    @ManyToOne(() => Application, (app) => app.name)
-    application: Application
 }

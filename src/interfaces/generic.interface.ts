@@ -1,4 +1,4 @@
-export interface AppResponse {
+export interface IAppResponse {
     status: number;
     message: string;
 }

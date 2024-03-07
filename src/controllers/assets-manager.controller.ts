@@ -1,17 +1,16 @@
 import { Post, Route, Tags, Path, Get, Request } from "tsoa";
-import { AssetsManagerService } from "./assets-manager.service";
-import { ApplicationAsset } from "./assets-manager.entity";
+import { AssetsManagerService } from "../services/assets-manager.service";
+import { ApplicationAsset } from "../entities/assets-manager.entity";
 import express from "express";
 
 @Route("api/assets")
 @Tags("Efficacy Assets Manager APIs")
 export class AssetsManagerController {
 
-    @Get("application/{appName}")
+    @Get()
     public async getFilesByApplication(
-        @Path() appName: string
     ): Promise<ApplicationAsset[]> {
-        return new AssetsManagerService().getAllAssetsByApplication(appName);
+        return new AssetsManagerService().getAllAssetsByApplication();
     }
 
     @Post("upload")
@@ -25,7 +24,6 @@ export class AssetsManagerController {
     ): Promise<ApplicationAsset> {
         return new AssetsManagerService().create(
             request.file,
-            request.body.appName,
             request.body.description,
             request.body.tags);
     }

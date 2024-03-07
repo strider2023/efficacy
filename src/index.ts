@@ -10,7 +10,7 @@ import * as morgan from "morgan";
 import { multerMiddleware } from "./multer-config";
 
 import * as path from "path";
-import { AssetsManagerService } from "./assests-manager/assets-manager.service";
+import { AssetsManagerService } from "./services/assets-manager.service";
 import * as cors from "cors";
 
 dotenv.config();

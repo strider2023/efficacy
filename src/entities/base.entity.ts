@@ -1,5 +1,5 @@
-import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
-import { Status } from "./enums";
+import { BaseEntity, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { Status } from "../enums";
 
 export abstract class AppBaseEntity extends BaseEntity {
     @PrimaryGeneratedColumn("uuid")
@@ -18,7 +18,4 @@ export abstract class AppBaseEntity extends BaseEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
-
-    @DeleteDateColumn()
-    deletedAt: Date;
 }
