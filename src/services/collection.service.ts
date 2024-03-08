@@ -20,10 +20,11 @@ export class CollectionService {
     }
 
     public async getAllCollections(queryParams: IAppQueryParams): Promise<Collection[]> {
-        const query = { status: Status.ACTIVE }
-        const collections = await Collection.find({
-            where: query
-        });
+        const queryObject = {where: { status: Status.ACTIVE }};
+        if (queryParams.properties) {
+            queryObject['select'] = queryParams.properties;
+        }
+        const collections = await Collection.find(queryObject);
         return collections;
     }
 
