@@ -1,4 +1,4 @@
-![Alt text](./public/efficacy-full-name.svg "Title")
+![Alt text](./public/efficacy-logo.svg "Title")
 # Efficacy
 ### Metadata driven application creator.
 
@@ -13,7 +13,7 @@ Note: It is still in early stages of development.
 
 **Client:** React, MUI, React-Jsonschema-Form
 
-**Server:** Node, Express, TypeORM, Knex
+**Server:** Node, Express, TypeORM, Knex, Swagger
 
 **Database:** Postgres
 
