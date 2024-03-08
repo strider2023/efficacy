@@ -1,13 +1,15 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
-
 import * as dotenv from "dotenv";
-
-import { Collection } from "./collections/entities/collection.entity";
-import { CollectionMetadataProperty } from "./collections/entities/collection-metadata-property.entity";
-import { Application } from "./application/application.entity";
-import { AppBaseEntity } from "./common/base.entity";
-import { ApplicationAsset } from "./assests-manager/assets-manager.entity";
+import { 
+    Collection,
+    MetadataProperty,
+    AppBaseEntity,
+    ApplicationAsset,
+    MetadataViewProperty,
+    ArrayViewProperty,
+    AccessGroup
+} from "./entities";
 
 dotenv.config();
 
@@ -25,10 +27,12 @@ export const AppDataSource = new DataSource({
     logging: NODE_ENV === "dev" ? false : false,
     entities: [
         AppBaseEntity,
-        Application,
+        AccessGroup,
         ApplicationAsset,
         Collection,
-        CollectionMetadataProperty
+        MetadataProperty,
+        MetadataViewProperty,
+        ArrayViewProperty
     ],
     migrations: [__dirname + "/migration/*.ts"],
     subscribers: [],
