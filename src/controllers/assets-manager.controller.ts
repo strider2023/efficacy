@@ -1,14 +1,16 @@
-import { Post, Route, Tags, Path, Get, Request } from "tsoa";
-import { AssetsManagerService } from "../services/assets-manager.service";
-import { ApplicationAsset } from "../entities/assets-manager.entity";
+import { Post, Route, Tags, Get, Request, Queries } from "tsoa";
+import { AssetsManagerService } from "../services";
+import { ApplicationAsset } from "../entities";
 import express from "express";
+import { IAppQueryParams } from "../interfaces";
 
 @Route("api/assets")
 @Tags("Efficacy Assets Manager APIs")
 export class AssetsManagerController {
 
     @Get()
-    public async getFilesByApplication(
+    public async getFiles(
+        @Queries() queryParams: IAppQueryParams
     ): Promise<ApplicationAsset[]> {
         return new AssetsManagerService().getAllAssetsByApplication();
     }

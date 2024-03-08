@@ -1,8 +1,8 @@
 
 import { Body, Example, Get, Path, Post, Queries, Route, Tags } from "tsoa";
-import { Collection } from "../entities/collection.entity";
-import { CollectionService } from "../services/collection.service";
-import { ICollection, ICollectionQueryParams } from "../interfaces";
+import { Collection } from "../entities";
+import { CollectionService } from "../services";
+import { ICollection, IAppQueryParams } from "../interfaces";
 import { MetadataProperty } from "../entities";
 
 @Route("api/collection")
@@ -17,16 +17,16 @@ export class CollectionController {
 
     @Get()
     public async getCollections(
-        @Queries() queryParams: ICollectionQueryParams
+        @Queries() queryParams: IAppQueryParams
     ): Promise<Collection[]> {
-        return new CollectionService().getAllByAppId(queryParams);
+        return new CollectionService().getAllCollections(queryParams);
     }
 
-    @Get("{collectioName}/properties")
+    @Get("{collectioId}/properties")
     public async getCollectionProperties(
-        @Path() collectioName: string
+        @Path() collectioId: string
     ): Promise<MetadataProperty[]> {
-        return new CollectionService().getCollectionProperties(collectioName);
+        return new CollectionService().getCollectionProperties(collectioId);
     }
 
     @Example<ICollection>({

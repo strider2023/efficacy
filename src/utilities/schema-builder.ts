@@ -1,12 +1,10 @@
-import { ICollection, ICollectionItemQuery } from "../interfaces";
-import { PropertyTypes } from "../enums/enums";
+import { ICollection, ICollectionItems, ICollectionItemsQuery } from "../interfaces";
+import { CollectionItemFilterOperations, PropertyTypes } from "../enums";
 import { knexConfig } from "../knex-config";
 import { Collection } from "../entities";
 
 //https://devhints.io/knex
 export class SchemaBuilder {
-
-    constructor() { }
 
     public async syncTables() {
         const tables = await knexConfig.select(['schemaname', 'tablename', 'tableowner', 'tablespace', 'hasindexes', 'hasrules', 'hastriggers', 'rowsecurity'])
@@ -81,24 +79,69 @@ export class SchemaBuilder {
 
     }
 
-    public async removeTable(request: string) {
-
+    public async removeTable(schemaName: string, tableName: string) {
+        await knexConfig.schema.withSchema(schemaName)
+            .dropTableIfExists(tableName);
     }
 
-    public async insertData(collection: Collection, request: Record<string, any>) {
-        const result = await knexConfig.insert(request).into(`${collection.schemaName}.${collection.tableName}`);
+    public async getData(itemId: string, tableName: string): Promise<Record<string, any>> {
+        const result = await knexConfig
+            .from(tableName)
+            .where({ id: itemId })
+            .first();
+        return result;
     }
 
-    public async updateData(request: string) {
-
+    public async insertData(tableName: string, request: Record<string, any>) {
+        await knexConfig
+            .insert(request)
+            .into(tableName);
     }
 
-    public async removeData(request: string) {
-
+    public async updateData(itemId: string, tableName: string, request: Record<string, any>) {
+        await knexConfig(tableName)
+            .where({ id: itemId })
+            .update(request);
     }
 
-    public async queryTable(collection: Collection, request: ICollectionItemQuery): Promise<any> {
-        const r = await knexConfig.from(`${collection.schemaName}.${collection.tableName}`);
-        return r;
+    public async removeData(itemId: string, tableName: string) {
+        await knexConfig(tableName)
+            .where({ id: itemId })
+            .del();
+    }
+
+    public async queryTable(collection: Collection, query: ICollectionItemsQuery): Promise<ICollectionItems> {
+        const response: ICollectionItems = {
+            result: []
+        }
+        try {
+            const queryProps = knexConfig.from(`${collection.schemaName}.${collection.tableName}`);
+            if (query.properties) {
+                queryProps.select(query.properties);
+            }
+            if (query.offset) {
+                queryProps.offset(query.offset);
+            }
+            if (query.limit) {
+                queryProps.limit(query.limit);
+            }
+            if (query.sortByProperty) {
+                queryProps.orderBy(query.sortByProperty, query.ascending ? 'asc' : 'desc');
+            }
+            if (query.filterByProperty && query.filterValue && query.filterOperation) {
+                if (query.filterOperation === CollectionItemFilterOperations.LIKE) {
+                    queryProps.where(query.filterByProperty, query.filterOperation, `%${query.filterValue.replaceAll('%', '\\%')}%`);
+                } else {
+                    queryProps.where(query.filterByProperty, query.filterOperation, query.filterValue);
+                }
+            }
+            response.result = await queryProps;
+            if (query.showCount) {
+                response.count = await knexConfig.from(`${collection.schemaName}.${collection.tableName}`).count('id');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        return response;
     }
 }

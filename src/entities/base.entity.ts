@@ -3,7 +3,7 @@ import { Status } from "../enums";
 
 export abstract class AppBaseEntity extends BaseEntity {
     @PrimaryGeneratedColumn("uuid")
-    id: number
+    id: string
 
     @Column({
         type: "enum",

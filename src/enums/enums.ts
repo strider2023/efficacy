@@ -54,6 +54,12 @@ export enum DateFormats {
     MONTH_DATE_YEAR = 'MDY',
 }
 
+export enum CollectionItemFilterOperations {
+    LIKE = 'like',
+    EQUALS = '=',
+    NOT_EQUALS = '!=',
+}
+
 // {
 //     boolean : ['hidden', 'radio', 'select'],
 //     string: ['hidden', 'text', 'textarea', 'password', 'color', 'email', 'uri', 'data-url'],

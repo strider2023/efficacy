@@ -8,8 +8,7 @@ import {
 import { 
     IArrayViewProperty, 
     ICollection, 
-    ICollectionItemQuery, 
-    ICollectionQueryParams, 
+    IAppQueryParams,
     IMetadataProperty, 
     IMetadataViewProperty 
 } from "../interfaces";
@@ -20,7 +19,7 @@ export class CollectionService {
         new SchemaBuilder().syncTables();
     }
 
-    public async getAllByAppId(queryParams: ICollectionQueryParams): Promise<Collection[]> {
+    public async getAllCollections(queryParams: IAppQueryParams): Promise<Collection[]> {
         const query = { status: Status.ACTIVE }
         const collections = await Collection.find({
             where: query
@@ -28,14 +27,21 @@ export class CollectionService {
         return collections;
     }
 
-    public async getCollectionProperties(collectioName: string): Promise<MetadataProperty[]> {
-        const collection = await Collection.findOneBy({ collectionId: collectioName, status: Status.ACTIVE });
+    public async getCollectionProperties(collectioId: string): Promise<MetadataProperty[]> {
+        const collection = await Collection.findOneBy({ 
+            collectionId: collectioId, 
+            status: Status.ACTIVE 
+        });
         const properties = await MetadataProperty.find({
             where: {
                 collection: {
                     id: collection.id
                 },
                 status: Status.ACTIVE,
+            },
+            relations: {
+                arrayOptions: true,
+                viewProperty: true
             }
         });
         return properties;
@@ -44,7 +50,9 @@ export class CollectionService {
 
     public async create(request: ICollection): Promise<Collection> {
         const success = await new SchemaBuilder().createTable(request);
-        const existingCollection = await Collection.findOneBy({ collectionId: request.collectionId });
+        const existingCollection = await Collection.findOneBy({ 
+            collectionId: request.collectionId 
+        });
         const collection = existingCollection ? existingCollection : new Collection();
         collection.collectionId = request.collectionId;
         collection.displayName = request.displayName;
@@ -64,37 +72,6 @@ export class CollectionService {
         // await collection.save();
 
         return collection;
-    }
-
-    public async createCollectionItem(
-        collectioName: string,
-        request: Record<string, any>): Promise<boolean> {
-        // Check if collection exists
-        const collection = await Collection.findOneBy({ collectionId: collectioName, status: Status.ACTIVE });
-        if (collection) {
-            // TODO: Validate Request
-            try {
-                await new SchemaBuilder().insertData(collection, request);
-                return true;
-            } catch (e) {
-                console.error(e);
-                return false;
-            }
-        }
-        return false;
-    }
-
-    public async getCollectionItems(
-        collectioName: string,
-        request: ICollectionItemQuery): Promise<any> {
-        // Check if collection exists
-        const collection = await Collection.findOneBy({ collectionId: collectioName, status: Status.ACTIVE });
-        if (collection) {
-            // TODO: Validate Request
-            const resp = await new SchemaBuilder().queryTable(collection, request);
-            return resp;
-        }
-        return [];
     }
 
     /////////////////////////////// Private Methods //////////////////////////////////

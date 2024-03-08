@@ -1,5 +1,5 @@
-import { Status } from "../enums/enums";
-import { ApplicationAsset } from "../entities/assets-manager.entity";
+import { Status } from "../enums";
+import { ApplicationAsset } from "../entities";
 
 export class AssetsManagerService {
 
