@@ -21,12 +21,17 @@ const app = express();
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(multerMiddleware);
-app.use(express.static("public"));
+app.use(express.static('admin'));
 app.use(cors());
+
 app.use("/api-docs", swaggerUi.serve, async (_req: Request, res: Response) => {
     return res.send(
         swaggerUi.generateHTML(await import("../build/swagger.json"))
     );
+});
+
+app.get("/", (req, res) => {
+    res.sendFile('/admin/index.html');
 });
 
 RegisterRoutes(app);

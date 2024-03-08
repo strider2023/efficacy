@@ -1,4 +1,4 @@
-![Alt text](./public/efficacy-full-name.svg "Title")
+![Alt text](./public/efficacy-logo.svg "Title")
 # Efficacy
 ### Metadata driven application creator.
 
