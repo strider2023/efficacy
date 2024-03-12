@@ -1,5 +1,5 @@
 
-import { Body, Example, Get, Path, Post, Queries, Route, Tags } from "tsoa";
+import { Body, Example, Get, Middlewares, Path, Post, Queries, Route, Security, Tags } from "tsoa";
 import { Collection } from "../entities";
 import { CollectionService } from "../services";
 import { ICollection, IAppQueryParams } from "../interfaces";
@@ -11,15 +11,28 @@ export class CollectionController {
 
     @Get("sync")
     public async syncCollections(
-    ): Promise<void> {
-        new CollectionService().syncCollections();
+    ): Promise<string> {
+        try {
+            await new CollectionService().syncCollections();
+        } catch(e) {
+            console.error(e);
+        }
+        return 'Success' 
     }
 
     @Get()
+    @Security("jwt", ["admin"])
     public async getCollections(
         @Queries() queryParams: IAppQueryParams
     ): Promise<Collection[]> {
         return new CollectionService().getAllCollections(queryParams);
+    }
+
+    @Get("{collectioId}")
+    public async getCollection(
+        @Path() collectioId: string
+    ): Promise<Collection> {
+        return new CollectionService().getCollectionById(collectioId);
     }
 
     @Get("{collectioId}/properties")

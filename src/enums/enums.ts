@@ -10,6 +10,12 @@ export enum CollectionAccessType {
     PUBLIC = "public",
 }
 
+export enum UserTypes {
+    ADMIN = "admin",
+    PORTAL_USER = "portal_user",
+    APP_USER = "app_user",
+}
+
 export enum Status {
     ACTIVE = "active",
     DELETED = "deleted",
