@@ -1,5 +1,5 @@
 
-import { Body, Example, Get, Path, Post, Queries, Route, Tags } from "tsoa";
+import { Body, Example, Get, Path, Post, Queries, Route, Security, Tags } from "tsoa";
 import { Collection } from "../entities";
 import { CollectionService } from "../services";
 import { ICollection, IAppQueryParams } from "../interfaces";
@@ -10,23 +10,47 @@ import { MetadataProperty } from "../entities";
 export class CollectionController {
 
     @Get("sync")
+    @Security("jwt", ["admin"])
     public async syncCollections(
-    ): Promise<void> {
-        new CollectionService().syncCollections();
+    ): Promise<string> {
+        try {
+            await new CollectionService().syncCollections();
+        } catch(e) {
+            console.error(e);
+        }
+        return 'Success' 
     }
 
     @Get()
+    @Security("jwt", ["admin", "portal_user"])
     public async getCollections(
         @Queries() queryParams: IAppQueryParams
     ): Promise<Collection[]> {
         return new CollectionService().getAllCollections(queryParams);
     }
 
+    @Get("{collectioId}")
+    @Security("jwt", ["admin", "portal_user"])
+    public async getCollection(
+        @Path() collectioId: string
+    ): Promise<Collection> {
+        return new CollectionService().getCollectionById(collectioId);
+    }
+
     @Get("{collectioId}/properties")
+    @Security("jwt", ["admin", "portal_user"])
     public async getCollectionProperties(
         @Path() collectioId: string
     ): Promise<MetadataProperty[]> {
         return new CollectionService().getCollectionProperties(collectioId);
+    }
+
+    @Get("{collectioId}/page-config/{adapter}")
+    public async getCollectionPageConfig(
+        @Path() collectioId: string,
+        @Path() adapter: string
+    ): Promise<any> {
+        return new CollectionService().getCollectionPageConfig(collectioId, adapter);
     }
 
     @Example<ICollection>({
@@ -39,15 +63,6 @@ export class CollectionController {
                 "displayName": "First Name",
                 "type": "string",
                 "required": true,
-                "viewProperty": {
-                    "widget": "text"
-                }
-            },
-            {
-                "propertyName": "middlename",
-                "displayName": "Middle Name",
-                "type": "string",
-                "required": false,
                 "viewProperty": {
                     "widget": "text"
                 }
@@ -82,20 +97,11 @@ export class CollectionController {
                     "widget": "text",
                     "inputType": "email"
                 }
-            },
-            {
-                "propertyName": "dateOfBirth",
-                "displayName": "Date of Birth",
-                "type": "date",
-                "required": true,
-                "viewProperty": {
-                    "widget": "text",
-                    "inputType": "date"
-                }
             }
         ]
     })
     @Post()
+    @Security("jwt", ["admin", "portal_user"])
     public async createCollection(
         @Body() request: ICollection)
         : Promise<Collection> {

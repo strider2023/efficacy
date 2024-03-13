@@ -7,11 +7,12 @@ import * as swaggerUi from "swagger-ui-express";
 import { RegisterRoutes } from "../build/routes";
 import { ValidateError } from "tsoa";
 import * as morgan from "morgan";
-import { multerMiddleware } from "./multer-config";
 
 import * as path from "path";
 import { AssetsManagerService } from "./services/assets-manager.service";
 import * as cors from "cors";
+import { bootstrapEfficacy } from "./config/bootstrap-config";
+import { rateLimiterConfig } from "./config/rate-limiter-config";
 
 dotenv.config();
 
@@ -20,15 +21,22 @@ const { PORT = 3000 } = process.env;
 const app = express();
 app.use(express.json());
 app.use(morgan("tiny"));
-app.use(multerMiddleware);
 app.use(express.static('admin'));
 app.use(cors());
+app.use(rateLimiterConfig);
 
-app.use("/api-docs", swaggerUi.serve, async (_req: Request, res: Response) => {
-    return res.send(
-        swaggerUi.generateHTML(await import("../build/swagger.json"))
-    );
-});
+app.use("/api-docs",
+    swaggerUi.serve,
+    async (_req: Request, res: Response) => {
+        return res.send(
+            swaggerUi.generateHTML(
+                await import("../build/swagger.json"),
+                undefined,
+                {
+                    oauth2RedirectUrl: `http://localhost:3000/api-docs`
+                })
+        );
+    });
 
 app.get("/", (req, res) => {
     res.sendFile('/admin/index.html');
@@ -79,5 +87,5 @@ AppDataSource.initialize().then(async () => {
         console.log("Server is running on http://localhost:" + PORT);
     });
     console.log("Data Source has been initialized!");
-
+    bootstrapEfficacy();
 }).catch(error => console.log(error))

@@ -5,6 +5,7 @@ import {
 } from "typeorm"
 import { AppBaseEntity } from "./base.entity"
 import { Collection } from "./collection.entity"
+import { User } from "."
 
 @Entity({ name: "efficacy_access_group", schema: "efficacy" })
 export class AccessGroup extends AppBaseEntity {
@@ -20,4 +21,7 @@ export class AccessGroup extends AppBaseEntity {
 
     @ManyToOne(() => Collection, (c) => c.collectionId)
     properties: Collection[]
+
+    @ManyToOne(() => Collection, (c) => c.collectionId)
+    users: User[]
 }

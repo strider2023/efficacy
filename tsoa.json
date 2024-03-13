@@ -6,9 +6,19 @@
     ],
     "spec": {
         "outputDirectory": "build",
-        "specVersion": 3
+        "specVersion": 3,
+        "securityDefinitions": {
+            "jwt": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "scheme": "bearer",
+                "in": "header"
+            }
+        }
     },
     "routes": {
-        "routesDir": "build"
+        "routesDir": "build",
+        "middleware": "./multer-config.ts",
+        "authenticationModule": "./src/auth-config.ts"
     }
 }

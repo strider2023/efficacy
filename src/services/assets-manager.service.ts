@@ -3,7 +3,7 @@ import { ApplicationAsset } from "../entities";
 
 export class AssetsManagerService {
 
-    public async getAllAssetsByApplication(): Promise<ApplicationAsset[]> {
+    public async getAllAssets(): Promise<ApplicationAsset[]> {
         const assets = await ApplicationAsset.find({
             where: {
                 status: Status.ACTIVE

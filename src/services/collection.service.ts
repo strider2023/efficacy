@@ -1,16 +1,17 @@
-import { SchemaBuilder } from "../utilities";
+import { RJSFBuilder, SchemaBuilder } from "../utilities";
 import { Status } from "../enums";
-import { 
-    ArrayViewProperty, 
-    Collection, 
-    MetadataProperty, 
-    MetadataViewProperty } from "../entities";
-import { 
-    IArrayViewProperty, 
-    ICollection, 
+import {
+    ArrayViewProperty,
+    Collection,
+    MetadataProperty,
+    MetadataViewProperty
+} from "../entities";
+import {
+    IArrayViewProperty,
+    ICollection,
     IAppQueryParams,
-    IMetadataProperty, 
-    IMetadataViewProperty 
+    IMetadataProperty,
+    IMetadataViewProperty
 } from "../interfaces";
 
 export class CollectionService {
@@ -20,7 +21,7 @@ export class CollectionService {
     }
 
     public async getAllCollections(queryParams: IAppQueryParams): Promise<Collection[]> {
-        const queryObject = {where: { status: Status.ACTIVE }};
+        const queryObject = { where: { status: Status.ACTIVE } };
         if (queryParams.properties) {
             queryObject['select'] = queryParams.properties;
         }
@@ -28,10 +29,18 @@ export class CollectionService {
         return collections;
     }
 
+    public async getCollectionById(collectioId: string): Promise<Collection> {
+        const collection = await Collection.findOneBy({
+            collectionId: collectioId,
+            status: Status.ACTIVE
+        });
+        return collection;
+    }
+
     public async getCollectionProperties(collectioId: string): Promise<MetadataProperty[]> {
-        const collection = await Collection.findOneBy({ 
-            collectionId: collectioId, 
-            status: Status.ACTIVE 
+        const collection = await Collection.findOneBy({
+            collectionId: collectioId,
+            status: Status.ACTIVE
         });
         const properties = await MetadataProperty.find({
             where: {
@@ -48,11 +57,31 @@ export class CollectionService {
         return properties;
     }
 
+    public async getCollectionPageConfig(collectioId: string, adapter: string): Promise<any> {
+        const collection = await Collection.findOneBy({
+            collectionId: collectioId,
+            status: Status.ACTIVE
+        });
+        const properties = await MetadataProperty.find({
+            where: {
+                collection: {
+                    id: collection.id
+                },
+                status: Status.ACTIVE,
+            },
+            relations: {
+                arrayOptions: true,
+                viewProperty: true
+            }
+        });
+        return await new RJSFBuilder().buildEditView(properties);
+    }
+
 
     public async create(request: ICollection): Promise<Collection> {
         const success = await new SchemaBuilder().createTable(request);
-        const existingCollection = await Collection.findOneBy({ 
-            collectionId: request.collectionId 
+        const existingCollection = await Collection.findOneBy({
+            collectionId: request.collectionId
         });
         const collection = existingCollection ? existingCollection : new Collection();
         collection.collectionId = request.collectionId;
@@ -81,7 +110,7 @@ export class CollectionService {
         prop: IMetadataProperty, collection: Collection, parent?: MetadataProperty): Promise<MetadataProperty> {
 
         const formProperty = prop.viewProperty ? await this.createFormProperty(prop.viewProperty) : null;
-        const arrayProperty = prop.arrayOptions ? await this.createArrayOptions(prop.arrayOptions): null;
+        const arrayProperty = prop.arrayOptions ? await this.createArrayOptions(prop.arrayOptions) : null;
 
         const existingProperty = await MetadataProperty.findOneBy({ collection: collection, propertyName: prop.propertyName });
         const mp = existingProperty ? existingProperty : new MetadataProperty();

@@ -1,6 +1,6 @@
 import { ICollection, ICollectionItems, ICollectionItemsQuery } from "../interfaces";
 import { CollectionItemFilterOperations, PropertyTypes } from "../enums";
-import { knexConfig } from "../knex-config";
+import { knexConfig } from "../config/knex-config";
 import { Collection } from "../entities";
 
 //https://devhints.io/knex
