@@ -22,7 +22,7 @@ export function expressAuthentication(
             }
 
             jwt.verify(token, SECRET_KEY, function (err: any, decoded: any) {
-                console.log(err, decoded)
+                // console.log(err, decoded)
                 if (err) {
                     reject(err);
                 } else {

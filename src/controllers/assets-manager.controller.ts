@@ -3,7 +3,7 @@ import { AssetsManagerService } from "../services";
 import { ApplicationAsset } from "../entities";
 import express from "express";
 import { IAppQueryParams } from "../interfaces";
-import { multerMiddleware } from "../multer-config";
+import { multerMiddleware } from "../config/multer-config";
 
 @Route("api/assets")
 @Tags("Efficacy Assets Manager APIs")

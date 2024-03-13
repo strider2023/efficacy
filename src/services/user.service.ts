@@ -1,6 +1,6 @@
-import { Status } from "../enums/enums";
+import { Status, UserTypes } from "../enums";
 import { User } from "../entities";
-import { IAppQueryParams, IUser } from "../interfaces";
+import { IAppQueryParams, IAppResponse, IAuthToken, IUpdatePassword, IUser } from "../interfaces";
 import * as bcrypt from 'bcrypt'
 
 export class UserService {
@@ -23,7 +23,7 @@ export class UserService {
         return users;
     }
 
-    public async create(request: IUser): Promise<User> {
+    public async create(request: IUser, token: IAuthToken): Promise<IAppResponse> {
         const salt = bcrypt.genSaltSync(10);
         const user = new User()
         user.firstname = request.firstname;
@@ -35,10 +35,10 @@ export class UserService {
         user.dob = request.dob;
         user.role = request.role;
         await user.save();
-        return user;
+        return  { status: 200, message: "User created." };
     }
 
-    public async update(request: IUser): Promise<User> {
+    public async update(request: IUser): Promise<IAppResponse> {
         const user = await User.findOneBy({ email: request.email });
         user.firstname = request.firstname;
         user.middlename = request.middlename;
@@ -47,21 +47,28 @@ export class UserService {
         user.dob = request.dob;
         user.role = request.role;
         await user.save();
-        return user;
+        return { status: 200, message: "Profile updated successfully." };
     }
 
-    public async updatePassword(email: string, password: string): Promise<User> {
+    public async updatePassword(token: IAuthToken, request: IUpdatePassword): Promise<IAppResponse> {
         const salt = bcrypt.genSaltSync(10);
-        const user = await User.findOneBy({ email: email });
-        user.password = bcrypt.hashSync(password, salt);
+        const user = await User.findOneBy({ email: token.email });
+        if (!user) {
+            return { status: 500, message: "User does not exists." }
+        }
+        const valid = await bcrypt.compare(request.oldPassword, user.password);
+        if (!valid) {
+            return { status: 500, message: "Current user password is invalid." }
+        }
+        user.password = bcrypt.hashSync(request.newPassword, salt);
         await user.save();
-        return user;
+        return { status: 200, message: "Password updated successfully." };
     }
 
-    public async delete(email: string): Promise<User> {
+    public async delete(email: string): Promise<IAppResponse> {
         const user = await User.findOneBy({ email: email });
         user.status = Status.DELETED;
         await user.save();
-        return user;
+        return { status: 200, message: "User deleted successfully." };
     }
 }

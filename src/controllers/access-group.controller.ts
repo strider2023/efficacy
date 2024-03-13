@@ -1,4 +1,4 @@
-import { Post, Route, Tags, Get, Put, Delete, Path, Body, Queries } from "tsoa";
+import { Post, Route, Tags, Get, Put, Delete, Path, Body, Queries, Security } from "tsoa";
 import { AccessGroupService } from "../services";
 import { AccessGroup } from "../entities";
 import { IAccessGroup, IAppQueryParams, IUpdateAccessGroup } from "../interfaces";
@@ -8,6 +8,7 @@ import { IAccessGroup, IAppQueryParams, IUpdateAccessGroup } from "../interfaces
 export class AccessGroupController {
 
     @Get()
+    @Security("jwt", ["admin", "portal_user"])
     public async getAccessGroups(
         @Queries() queryParams: IAppQueryParams
     ): Promise<AccessGroup[]> {
@@ -15,6 +16,7 @@ export class AccessGroupController {
     }
 
     @Post()
+    @Security("jwt", ["admin", "portal_user"])
     public async create(
         @Body() request: IAccessGroup
     ): Promise<AccessGroup> {
@@ -22,6 +24,7 @@ export class AccessGroupController {
     }
 
     @Put("{accessGroupId}")
+    @Security("jwt", ["admin", "portal_user"])
     public async update(
         @Path() accessGroupId: string,
         @Body() request: IUpdateAccessGroup
@@ -30,6 +33,7 @@ export class AccessGroupController {
     }
 
     @Delete("{accessGroupId}")
+    @Security("jwt", ["admin", "portal_user"])
     public async delete(
         @Path() accessGroupId: string,
     ): Promise<AccessGroup> {

@@ -10,6 +10,7 @@ import { MetadataProperty } from "../entities";
 export class CollectionController {
 
     @Get("sync")
+    @Security("jwt", ["admin"])
     public async syncCollections(
     ): Promise<string> {
         try {
@@ -21,7 +22,7 @@ export class CollectionController {
     }
 
     @Get()
-    @Security("jwt", ["admin"])
+    @Security("jwt", ["admin", "portal_user"])
     public async getCollections(
         @Queries() queryParams: IAppQueryParams
     ): Promise<Collection[]> {
@@ -29,6 +30,7 @@ export class CollectionController {
     }
 
     @Get("{collectioId}")
+    @Security("jwt", ["admin", "portal_user"])
     public async getCollection(
         @Path() collectioId: string
     ): Promise<Collection> {
@@ -36,6 +38,7 @@ export class CollectionController {
     }
 
     @Get("{collectioId}/properties")
+    @Security("jwt", ["admin", "portal_user"])
     public async getCollectionProperties(
         @Path() collectioId: string
     ): Promise<MetadataProperty[]> {
@@ -109,6 +112,7 @@ export class CollectionController {
         ]
     })
     @Post()
+    @Security("jwt", ["admin", "portal_user"])
     public async createCollection(
         @Body() request: ICollection)
         : Promise<Collection> {

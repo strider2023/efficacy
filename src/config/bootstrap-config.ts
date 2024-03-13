@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
-import { Status, UserTypes } from './enums';
-import { User } from './entities';
+import { Status, UserTypes } from '../enums';
+import { User } from '../entities';
 import * as bcrypt from 'bcrypt'
 
 dotenv.config();
