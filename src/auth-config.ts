@@ -22,14 +22,12 @@ export function expressAuthentication(
             }
 
             jwt.verify(token, SECRET_KEY, function (err: any, decoded: any) {
-                // console.log(err, decoded)
+                console.log(err, decoded)
                 if (err) {
                     reject(err);
                 } else {
-                    for (let scope of scopes) {
-                        if (decoded.role != scope) {
-                            reject(new Error("JWT does not contain required scope."));
-                        }
+                    if (!scopes.includes(decoded.role)) {
+                        reject(new Error("JWT does not contain required scope."));
                     }
                     if (decoded.iss != TOKEN_ISSUER) {
                         reject(new Error('JWT error'));

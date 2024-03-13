@@ -12,6 +12,7 @@ import * as path from "path";
 import { AssetsManagerService } from "./services/assets-manager.service";
 import * as cors from "cors";
 import { bootstrapEfficacy } from "./config/bootstrap-config";
+import { rateLimiterConfig } from "./config/rate-limiter-config";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use(morgan("tiny"));
 app.use(express.static('admin'));
 app.use(cors());
+app.use(rateLimiterConfig);
 
 app.use("/api-docs",
     swaggerUi.serve,
