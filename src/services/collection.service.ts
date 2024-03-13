@@ -1,4 +1,4 @@
-import { SchemaBuilder } from "../utilities";
+import { RJSFBuilder, SchemaBuilder } from "../utilities";
 import { Status } from "../enums";
 import {
     ArrayViewProperty,
@@ -55,6 +55,26 @@ export class CollectionService {
             }
         });
         return properties;
+    }
+
+    public async getCollectionPageConfig(collectioId: string, adapter: string): Promise<any> {
+        const collection = await Collection.findOneBy({
+            collectionId: collectioId,
+            status: Status.ACTIVE
+        });
+        const properties = await MetadataProperty.find({
+            where: {
+                collection: {
+                    id: collection.id
+                },
+                status: Status.ACTIVE,
+            },
+            relations: {
+                arrayOptions: true,
+                viewProperty: true
+            }
+        });
+        return await new RJSFBuilder().buildEditView(properties);
     }
 
 

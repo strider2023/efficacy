@@ -1,4 +1,4 @@
-import { Post, Route, Tags, Get, Request, Queries, UploadedFile, FormField, Middlewares } from "tsoa";
+import { Post, Route, Tags, Get, Request, Queries, UploadedFile, FormField, Middlewares, Security } from "tsoa";
 import { AssetsManagerService } from "../services";
 import { ApplicationAsset } from "../entities";
 import express from "express";
@@ -10,6 +10,7 @@ import { multerMiddleware } from "../config/multer-config";
 export class AssetsManagerController {
 
     @Get()
+    @Security("jwt", ["admin"])
     public async getFiles(
         @Queries() queryParams: IAppQueryParams
     ): Promise<ApplicationAsset[]> {

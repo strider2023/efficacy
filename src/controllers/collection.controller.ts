@@ -1,5 +1,5 @@
 
-import { Body, Example, Get, Middlewares, Path, Post, Queries, Route, Security, Tags } from "tsoa";
+import { Body, Example, Get, Path, Post, Queries, Route, Security, Tags } from "tsoa";
 import { Collection } from "../entities";
 import { CollectionService } from "../services";
 import { ICollection, IAppQueryParams } from "../interfaces";
@@ -45,6 +45,14 @@ export class CollectionController {
         return new CollectionService().getCollectionProperties(collectioId);
     }
 
+    @Get("{collectioId}/page-config/{adapter}")
+    public async getCollectionPageConfig(
+        @Path() collectioId: string,
+        @Path() adapter: string
+    ): Promise<any> {
+        return new CollectionService().getCollectionPageConfig(collectioId, adapter);
+    }
+
     @Example<ICollection>({
         "collectionId": "user",
         "displayName": "User",
@@ -55,15 +63,6 @@ export class CollectionController {
                 "displayName": "First Name",
                 "type": "string",
                 "required": true,
-                "viewProperty": {
-                    "widget": "text"
-                }
-            },
-            {
-                "propertyName": "middlename",
-                "displayName": "Middle Name",
-                "type": "string",
-                "required": false,
                 "viewProperty": {
                     "widget": "text"
                 }
@@ -97,16 +96,6 @@ export class CollectionController {
                 "viewProperty": {
                     "widget": "text",
                     "inputType": "email"
-                }
-            },
-            {
-                "propertyName": "dateOfBirth",
-                "displayName": "Date of Birth",
-                "type": "date",
-                "required": true,
-                "viewProperty": {
-                    "widget": "text",
-                    "inputType": "date"
                 }
             }
         ]
