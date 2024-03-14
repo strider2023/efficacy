@@ -7,7 +7,7 @@ import * as swaggerUi from "swagger-ui-express";
 import { RegisterRoutes } from "../build/routes";
 import { ValidateError } from "tsoa";
 import * as morgan from "morgan";
-
+import helmet from "helmet";
 import * as path from "path";
 import { AssetsManagerService } from "./services/assets-manager.service";
 import * as cors from "cors";
@@ -23,6 +23,7 @@ app.use(express.json());
 app.use(morgan("tiny"));
 app.use(express.static('admin'));
 app.use(cors());
+app.use(helmet());
 app.use(rateLimiterConfig);
 
 app.use("/api-docs",

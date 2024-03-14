@@ -11,13 +11,15 @@ export class UserService {
                 status: Status.ACTIVE
             },
             select: {
+                id: true,
                 firstname: true,
                 middlename: true,
                 lastname: true,
                 phone: true,
                 email: true,
                 dob: true,
-                role: true
+                role: true,
+                status: true,
             },
         });
         return users;
