@@ -1,11 +1,11 @@
-import { Post, Route, Tags, Get, Put, Delete, Path, Body, Queries, Security } from "tsoa";
+import { Post, Route, Tags, Get, Put, Delete, Path, Body, Queries, Security, Controller, SuccessResponse } from "tsoa";
 import { AccessGroupService } from "../services";
 import { AccessGroup } from "../entities";
 import { IAccessGroup, IAppQueryParams, IUpdateAccessGroup } from "../interfaces";
 
 @Route("api/access-group")
 @Tags("Efficacy Access Group APIs")
-export class AccessGroupController {
+export class AccessGroupController extends Controller {
 
     @Get()
     @Security("jwt", ["admin", "portal_user"])
@@ -15,28 +15,35 @@ export class AccessGroupController {
         return new AccessGroupService().getAccessGroups();
     }
 
+    @SuccessResponse("201", "Created") 
     @Post()
     @Security("jwt", ["admin", "portal_user"])
     public async create(
         @Body() request: IAccessGroup
-    ): Promise<AccessGroup> {
-        return new AccessGroupService().create(request);
+    ): Promise<void> {
+        this.setStatus(201)
+        await new AccessGroupService().create(request);
+        return;
     }
 
+    @SuccessResponse("200", "Updated")
     @Put("{accessGroupId}")
     @Security("jwt", ["admin", "portal_user"])
     public async update(
         @Path() accessGroupId: string,
         @Body() request: IUpdateAccessGroup
-    ): Promise<AccessGroup> {
-        return new AccessGroupService().update(accessGroupId, request);
+    ): Promise<void> {
+        await new AccessGroupService().update(accessGroupId, request);
+        return;
     }
 
+    @SuccessResponse("200", "Updated")
     @Delete("{accessGroupId}")
     @Security("jwt", ["admin", "portal_user"])
     public async delete(
         @Path() accessGroupId: string,
-    ): Promise<AccessGroup> {
-        return new AccessGroupService().delete(accessGroupId);
+    ): Promise<void> {
+        await new AccessGroupService().delete(accessGroupId);
+        return;
     }
 }

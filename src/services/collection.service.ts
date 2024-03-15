@@ -1,4 +1,4 @@
-import { RJSFBuilder, SchemaBuilder } from "../utilities";
+import { UIBuilder, SchemaBuilder } from "../utilities";
 import { Status } from "../enums";
 import {
     ArrayViewProperty,
@@ -29,23 +29,19 @@ export class CollectionService {
         return collections;
     }
 
-    public async getCollectionById(collectioId: string): Promise<Collection> {
+    public async getCollectionById(collectionId: string): Promise<Collection> {
         const collection = await Collection.findOneBy({
-            collectionId: collectioId,
+            collectionId: collectionId,
             status: Status.ACTIVE
         });
         return collection;
     }
 
-    public async getCollectionProperties(collectioId: string): Promise<MetadataProperty[]> {
-        const collection = await Collection.findOneBy({
-            collectionId: collectioId,
-            status: Status.ACTIVE
-        });
+    public async getCollectionProperties(collectionId: string): Promise<MetadataProperty[]> {
         const properties = await MetadataProperty.find({
             where: {
                 collection: {
-                    id: collection.id
+                    collectionId: collectionId
                 },
                 status: Status.ACTIVE,
             },
@@ -57,15 +53,11 @@ export class CollectionService {
         return properties;
     }
 
-    public async getCollectionPageConfig(collectioId: string, adapter: string): Promise<any> {
-        const collection = await Collection.findOneBy({
-            collectionId: collectioId,
-            status: Status.ACTIVE
-        });
+    public async getCollectionPageConfig(collectionId: string, adapter: string): Promise<any> {
         const properties = await MetadataProperty.find({
             where: {
                 collection: {
-                    id: collection.id
+                    collectionId: collectionId
                 },
                 status: Status.ACTIVE,
             },
@@ -74,11 +66,11 @@ export class CollectionService {
                 viewProperty: true
             }
         });
-        return await new RJSFBuilder().buildEditView(properties);
+        return await UIBuilder.getConfig(adapter, properties);
     }
 
 
-    public async create(request: ICollection): Promise<Collection> {
+    public async create(request: ICollection) {
         const success = await new SchemaBuilder().createTable(request);
         const existingCollection = await Collection.findOneBy({
             collectionId: request.collectionId
@@ -100,8 +92,14 @@ export class CollectionService {
         }
         // collection.properties = properties;
         // await collection.save();
+    }
 
-        return collection;
+    public async update(collectionId: string, request: ICollection) {
+
+    }
+
+    public async delete(collectionId: string) {
+
     }
 
     /////////////////////////////// Private Methods //////////////////////////////////
@@ -132,11 +130,7 @@ export class CollectionService {
         mp.enumValues = prop.enumValues;
         //If parent defined in request
         if (prop.parent) {
-            const p = await MetadataProperty.findOneBy({
-                collection: collection,
-                propertyName: parent.propertyName
-            });
-            mp.parent = p;
+            mp.parent.id = parent.id;
         }
         //In case of recurrions
         if (parent) {

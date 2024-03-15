@@ -8,8 +8,10 @@ import {
     ICollectionItems,
     ICollectionItemsQuery,
 } from "../interfaces";
+import { ApiError } from "../errors";
+import { Controller } from "tsoa";
 
-export class CollectionItemsService {
+export class CollectionItemsService extends Controller {
 
     public async getCollectionProperties(collectionId: string): Promise<ICollectionAttributes[]> {
         const properties = await MetadataProperty.find({
@@ -30,7 +32,7 @@ export class CollectionItemsService {
 
     public async createCollectionItem(
         collectionId: string,
-        request: Record<string, any>): Promise<boolean> {
+        request: Record<string, any>) {
         // Check if collection exists
         const collection = await Collection.findOneBy({
             collectionId: collectionId,
@@ -43,19 +45,16 @@ export class CollectionItemsService {
                     .insertData(
                         `${collection.schemaName}.${collection.tableName}`,
                         request);
-                return true;
             } catch (e) {
-                console.error(e);
-                return false;
+                throw new ApiError("Update Collection Item", 500, e.message);
             }
         }
-        return false;
     }
 
     public async updateCollectionItem(
         collectionId: string,
         itemId: string,
-        request: Record<string, any>): Promise<boolean> {
+        request: Record<string, any>) {
         // Check if collection exists
         const collection = await Collection.findOneBy({
             collectionId: collectionId,
@@ -65,21 +64,18 @@ export class CollectionItemsService {
             // TODO: Validate Request
             try {
                 await new SchemaBuilder().updateData(
-                    itemId, 
-                    `${collection.schemaName}.${collection.tableName}`, 
+                    itemId,
+                    `${collection.schemaName}.${collection.tableName}`,
                     request);
-                return true;
             } catch (e) {
-                console.error(e);
-                return false;
+                throw new ApiError("Update Collection Item", 500, e.message);
             }
         }
-        return false;
     }
 
     public async removeCollectionItem(
         collectionId: string,
-        itemId: string): Promise<boolean> {
+        itemId: string) {
         // Check if collection exists
         const collection = await Collection.findOneBy({
             collectionId: collectionId,
@@ -89,14 +85,12 @@ export class CollectionItemsService {
             // TODO: Validate Request
             try {
                 await new SchemaBuilder().removeData(
-                    itemId, 
+                    itemId,
                     `${collection.schemaName}.${collection.tableName}`);
-                return true;
             } catch (e) {
-                console.error(e);
+                throw new ApiError("Update Collection Item", 500, e.message);
             }
         }
-        return false;
     }
 
     public async getCollectionItem(
@@ -111,13 +105,12 @@ export class CollectionItemsService {
             // TODO: Validate Request
             try {
                 return await new SchemaBuilder().getData(
-                    itemId, 
+                    itemId,
                     `${collection.schemaName}.${collection.tableName}`);
             } catch (e) {
-                console.error(e);
+                throw new ApiError("Update Collection Item", 500, e.message);
             }
         }
-        return {};
     }
 
     public async getCollectionItems(

@@ -1,11 +1,11 @@
 
-import { Body, Delete, Get, Path, Post, Put, Queries, Route, Tags } from "tsoa";
+import { Body, Controller, Delete, Get, Path, Post, Put, Queries, Route, SuccessResponse, Tags } from "tsoa";
 import { CollectionItemsService } from "../services";
-import { IAppResponse, ICollectionItems, ICollectionItemsQuery } from "../interfaces";
+import { ICollectionItems, ICollectionItemsQuery } from "../interfaces";
 
 @Route("api/collection")
 @Tags("Efficacy Collection Item APIs")
-export class CollectionItemController {
+export class CollectionItemController extends Controller {
 
     @Get("{collectionId}/items")
     public async getCollectionItems(
@@ -27,43 +27,35 @@ export class CollectionItemController {
         return await new CollectionItemsService().getCollectionItem(collectionId, itemId);
     }
 
+    @SuccessResponse("201", "Created") 
     @Post("{collectionId}/item")
     public async createCollectionItem(
         @Path() collectionId: string,
         @Body() request: Record<string, any>
-    ): Promise<IAppResponse> {
-        const success = await new CollectionItemsService().createCollectionItem(collectionId, request);
-        const response: IAppResponse = {
-            status: success ? 201 : 500,
-            message: success ? `Entry created successfully` : `Unable to created entry`
-        }
-        return response;
+    ): Promise<void> {
+        this.setStatus(201)
+        await new CollectionItemsService().createCollectionItem(collectionId, request);
+        return;
     }
 
+    @SuccessResponse("200", "Updated") 
     @Put("{collectionId}/item/{itemId}")
     public async updateCollectionItem(
         @Path() collectionId: string,
         @Path() itemId: string,
         @Body() request: Record<string, any>
-    ): Promise<IAppResponse> {
-        const success = await new CollectionItemsService().updateCollectionItem(collectionId, itemId, request);
-        const response: IAppResponse = {
-            status: success ? 201 : 500,
-            message: success ? `Entry updated successfully.` : `Unable to updated entry.`
-        }
-        return response;
+    ): Promise<void> {
+        await new CollectionItemsService().updateCollectionItem(collectionId, itemId, request);
+        return;
     }
 
+    @SuccessResponse("200", "Entry removed successfully.") 
     @Delete("{collectionId}/item/{itemId}")
     public async removeCollectionItem(
         @Path() collectionId: string,
         @Path() itemId: string,
-    ): Promise<IAppResponse> {
-        const success = await new CollectionItemsService().removeCollectionItem(collectionId, itemId);
-        const response: IAppResponse = {
-            status: success ? 201 : 500,
-            message: success ? `Entry removed successfully.` : `Unable to remove entry.`
-        }
-        return response;
+    ): Promise<void> {
+        await new CollectionItemsService().removeCollectionItem(collectionId, itemId);
+        return;
     }
 }

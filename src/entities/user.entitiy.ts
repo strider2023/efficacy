@@ -2,7 +2,6 @@ import { Entity, Column, OneToMany } from "typeorm";
 import { AppBaseEntity } from "./base.entity";
 import { UserTypes } from "../enums"
 import { AccessGroup } from "./access-group.entity";
-import { UserSession } from "./user-session.entity";
 
 @Entity({ name: "efficacy_user", schema: "efficacy" })
 export class User extends AppBaseEntity {
@@ -41,7 +40,4 @@ export class User extends AppBaseEntity {
 
     @OneToMany(() => AccessGroup, (ag) => ag.accessGroupId, { nullable: true })
     accessGroup?: AccessGroup[]
-
-    @OneToMany(() => UserSession, (us) => us.token, { nullable: true })
-    userSession?: UserSession[]
 }

@@ -16,6 +16,12 @@ export class ApplicationAsset extends AppBaseEntity {
     @Column({ nullable: false })
     mimetype: string;
 
+    @Column({ nullable: false })
+    destination: string;
+
+    @Column({ nullable: false })
+    path: string;
+
     @Column({ nullable: true })
     description?: string;
 

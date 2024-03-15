@@ -1,6 +1,7 @@
 import { Status } from "../enums/enums";
 import { AccessGroup } from "../entities";
 import { IAccessGroup, IUpdateAccessGroup } from "../interfaces";
+import { ApiError } from "../errors";
 
 export class AccessGroupService {
 
@@ -13,27 +14,36 @@ export class AccessGroupService {
         return accessGroups;
     }
 
-    public async create(request: IAccessGroup): Promise<AccessGroup> {
-        const accessGroup = new AccessGroup()
-        accessGroup.accessGroupId = request.accessGroupId;
-        accessGroup.displayName = request.displayName;
-        accessGroup.description = request.description;
-        await accessGroup.save();
-        return accessGroup;
+    public async create(request: IAccessGroup) {
+        try {
+            const accessGroup = new AccessGroup()
+            accessGroup.accessGroupId = request.accessGroupId;
+            accessGroup.displayName = request.displayName;
+            accessGroup.description = request.description;
+            await accessGroup.save();
+        } catch (e) {
+            throw new ApiError("Access Group", 500, e.message);
+        }
     }
 
-    public async update(accessGroupId: string, request: IUpdateAccessGroup): Promise<AccessGroup> {
-        const accessGroup = await AccessGroup.findOneBy({ accessGroupId: accessGroupId });
-        accessGroup.displayName = request.displayName;
-        accessGroup.description = request.description;
-        await accessGroup.save();
-        return accessGroup;
+    public async update(accessGroupId: string, request: IUpdateAccessGroup) {
+        try {
+            const accessGroup = await AccessGroup.findOneBy({ accessGroupId: accessGroupId });
+            accessGroup.displayName = request.displayName;
+            accessGroup.description = request.description;
+            await accessGroup.save();
+        } catch (e) {
+            throw new ApiError("Access Group", 500, e.message);
+        }
     }
 
-    public async delete(accessGroupId: string): Promise<AccessGroup> {
-        const accessGroup = await AccessGroup.findOneBy({ accessGroupId: accessGroupId });
-        accessGroup.status = Status.DELETED;
-        await accessGroup.save();
-        return accessGroup;
+    public async delete(accessGroupId: string) {
+        try {
+            const accessGroup = await AccessGroup.findOneBy({ accessGroupId: accessGroupId });
+            accessGroup.status = Status.DELETED;
+            await accessGroup.save();
+        } catch (e) {
+            throw new ApiError("Access Group", 500, e.message);
+        }
     }
 }

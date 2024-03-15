@@ -6,16 +6,16 @@ export interface IAuthentication {
 
 export interface IAuthenticationResponse {
     token: string;
-    refreshToken: string;
+    expiry: Date;
+    sessionId: string
     callbackURL?: string
 }
 
 export interface IAuthToken {
     firstname: string
-    middlename?: string
     lastname: string
     email: string
-    image?: string
+    sessionId: string
     role: string
     iat: Date
     exp: Date

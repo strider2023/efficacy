@@ -1,38 +1,44 @@
-import { Post, Route, Tags, Body, Patch, Security } from "tsoa";
+import { Post, Route, Tags, Body, Patch, Security, Request, Controller, SuccessResponse } from "tsoa";
 import { AuthenticationService } from "../services";
-import { IAppResponse, IAuthentication, IAuthenticationResponse, IUpdateAccessGroup, IUser } from "../interfaces";
+import { IAuthentication, IAuthenticationResponse, IUser } from "../interfaces";
+import express from "express";
 
 @Route("api/auth")
 @Tags("Efficacy Authentication APIs")
-export class AuthenticationController {
+export class AuthenticationController extends Controller {
 
     @Post("/login")
     public async login(
         @Body() request: IAuthentication
-    ): Promise<IAuthenticationResponse|IAppResponse> {
+    ): Promise<IAuthenticationResponse> {
         return new AuthenticationService().authenticate(request);
     }
 
     @Post("/register")
     public async register(
         @Body() request: IUser
-    ): Promise<IAuthenticationResponse|IAppResponse> {
+    ): Promise<IAuthenticationResponse> {
         return new AuthenticationService().registerUser(request);
     }
 
     @Post("/refresh")
     @Security("jwt")
     public async refreshToken(
-        @Body() request: IAuthenticationResponse
-    ): Promise<IAuthenticationResponse|IAppResponse> {
-        return new AuthenticationService().refreshToken(request);
+        @Request() exReq: express.Request,
+        @Request() request: any,
+    ): Promise<IAuthenticationResponse> {
+        const token = exReq.headers['authorization'];
+        return new AuthenticationService().refreshToken(request.user, token);
     }
 
+    @SuccessResponse("200", "Updated") 
     @Patch("/logout")
     @Security("jwt")
     public async logout(
-        @Body() request: IAuthenticationResponse
-    ): Promise<IAppResponse> {
-        return new AuthenticationService().logout(request);
+        @Request() request: express.Request,
+    ): Promise<void> {
+        const token = request.headers['authorization'];
+        new AuthenticationService().logout(token);
+        return;
     }
 }
