@@ -1,8 +1,10 @@
+import { ApiError } from "../errors";
 import { MetadataProperty } from "../entities";
+import { BaseUIBuilder } from "./base-ui-builder.abstract";
 
-export class RJSFBuilder {
+export class WebUIBuilder extends BaseUIBuilder {
 
-    public async buildEditView(properties: MetadataProperty[]): Promise<any> {
+    public async getUIConfig(properties: MetadataProperty[]): Promise<any> {
         let jsonSchema = { type: "object", required: [], properties: {} };
         let uiSchema = {};
         try {
@@ -40,8 +42,7 @@ export class RJSFBuilder {
             }
             return { jsonSchema, uiSchema };
         } catch (e) {
-            console.error(e);
+            throw new ApiError("Page Config Error", 204, e.message);
         }
-        return { jsonSchema, uiSchema };
     }
 }

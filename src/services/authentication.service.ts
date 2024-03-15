@@ -41,17 +41,21 @@ export class AuthenticationService {
         if (user) {
             throw new AuthError("Permission Error", 403, "User with given email id already exists.")
         }
-        const salt = bcrypt.genSaltSync(10);
-        user = new User()
-        user.firstname = request.firstname;
-        user.middlename = request.middlename;
-        user.lastname = request.lastname;
-        user.phone = request.phone;
-        user.email = request.email;
-        user.password = bcrypt.hashSync(request.password, salt);
-        user.dob = request.dob;
-        user.role = request.role;
-        await user.save();
+        try {
+            const salt = bcrypt.genSaltSync(10);
+            user = new User()
+            user.firstname = request.firstname;
+            user.middlename = request.middlename;
+            user.lastname = request.lastname;
+            user.phone = request.phone;
+            user.email = request.email;
+            user.password = bcrypt.hashSync(request.password, salt);
+            user.dob = request.dob;
+            user.role = request.role;
+            await user.save();
+        } catch (e) {
+            throw new AuthError("User Registration Error", 500, e.message);
+        }
         return this.createSession(user);
     }
 
@@ -70,13 +74,8 @@ export class AuthenticationService {
         return this.createSession(user);
     }
 
-    public async logout(sessionId: string): Promise<IAppResponse> {
-        const apiResponse: IAppResponse = {
-            status: 200,
-            message: "User logged out successfully"
-        };
-        await await RedisClient.getInstance().getClient().del(sessionId);
-        return apiResponse;
+    public async logout(sessionId: string) {
+        await RedisClient.getInstance().getClient().del(sessionId);
     }
 
     private async createSession(user: User, callbackUrl?: string): Promise<IAuthenticationResponse> {

@@ -1,5 +1,6 @@
 import { Status } from "../enums";
 import { ApplicationAsset } from "../entities";
+import { ApiError } from "../errors";
 
 export class AssetsManagerService {
 
@@ -25,15 +26,23 @@ export class AssetsManagerService {
     public async create(file: Express.Multer.File,
         description?: string,
         tags?: string[]): Promise<ApplicationAsset> {
-        const appAsset = new ApplicationAsset()
-        appAsset.assetId = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        appAsset.filename = file.originalname;
-        appAsset.mimetype = file.mimetype;
-        appAsset.filesize = file.size;
-        appAsset.description = description;
-        appAsset.tags = tags;
-        await appAsset.save();
-        return appAsset;
+        try {
+
+
+            const appAsset = new ApplicationAsset()
+            appAsset.assetId = file.filename;
+            appAsset.filename = file.originalname;
+            appAsset.mimetype = file.mimetype;
+            appAsset.filesize = file.size;
+            appAsset.destination = file.destination;
+            appAsset.path = file.path;
+            appAsset.description = description;
+            appAsset.tags = tags;
+            await appAsset.save();
+            return appAsset;
+        } catch (e) {
+            throw new ApiError("Upload Asset Error", 500, e.message);
+        }
     }
 
 }

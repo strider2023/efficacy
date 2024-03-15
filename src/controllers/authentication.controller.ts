@@ -1,11 +1,11 @@
-import { Post, Route, Tags, Body, Patch, Security, Request } from "tsoa";
+import { Post, Route, Tags, Body, Patch, Security, Request, Controller, SuccessResponse } from "tsoa";
 import { AuthenticationService } from "../services";
-import { IAppResponse, IAuthentication, IAuthenticationResponse, IUser } from "../interfaces";
+import { IAuthentication, IAuthenticationResponse, IUser } from "../interfaces";
 import express from "express";
 
 @Route("api/auth")
 @Tags("Efficacy Authentication APIs")
-export class AuthenticationController {
+export class AuthenticationController extends Controller {
 
     @Post("/login")
     public async login(
@@ -31,12 +31,14 @@ export class AuthenticationController {
         return new AuthenticationService().refreshToken(request.user, token);
     }
 
+    @SuccessResponse("200", "Updated") 
     @Patch("/logout")
     @Security("jwt")
     public async logout(
         @Request() request: express.Request,
-    ): Promise<IAppResponse> {
+    ): Promise<void> {
         const token = request.headers['authorization'];
-        return new AuthenticationService().logout(token);
+        new AuthenticationService().logout(token);
+        return;
     }
 }

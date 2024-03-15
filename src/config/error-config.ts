@@ -7,6 +7,7 @@ export const errorHandlerMiddleware = (
     req: Request,
     res: Response,
     next: NextFunction) => {
+    console.error(err);
     if (err instanceof AuthError) {
         return res.status(err.statusCode).json({
             message: err.name,

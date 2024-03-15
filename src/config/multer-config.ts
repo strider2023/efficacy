@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import * as multer from 'multer'
+import * as fs from 'fs';
 
 type DestinationCallback = (error: Error | null, destination: string) => void
 type FileNameCallback = (error: Error | null, filename: string) => void
@@ -10,7 +11,10 @@ export const fileStorage = multer.diskStorage({
         file: Express.Multer.File,
         callback: DestinationCallback
     ): void => {
-        callback(null, './uploads/')
+        console.log(request.body.path);
+        const path = `./efficacy_assets/${request.body.path || ''}`;
+        fs.mkdirSync(path, { recursive: true });
+        callback(null, path)
     },
 
     filename: (

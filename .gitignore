@@ -6,4 +6,5 @@ tmp/
 temp/
 uploads/
 dist/
+efficacy_assets/
 .env

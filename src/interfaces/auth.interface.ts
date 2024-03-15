@@ -13,10 +13,9 @@ export interface IAuthenticationResponse {
 
 export interface IAuthToken {
     firstname: string
-    middlename?: string
     lastname: string
     email: string
-    image?: string
+    sessionId: string
     role: string
     iat: Date
     exp: Date

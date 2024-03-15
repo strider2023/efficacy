@@ -1,15 +1,12 @@
 import { AppDataSource } from "./data-source"
 import * as express from "express";
 import * as dotenv from "dotenv";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import "reflect-metadata";
 import * as swaggerUi from "swagger-ui-express";
 import { RegisterRoutes } from "../build/routes";
-import { ValidateError } from "tsoa";
 import * as morgan from "morgan";
 import helmet from "helmet";
-import * as path from "path";
-import { AssetsManagerService } from "./services/assets-manager.service";
 import * as cors from "cors";
 import { bootstrapEfficacy } from "./config/bootstrap-config";
 import { rateLimiterConfig } from "./config/rate-limiter-config";
@@ -46,16 +43,6 @@ app.get("/", (req, res) => {
 });
 
 RegisterRoutes(app);
-
-app.get("/api/assets/:assetId", async (req, res) => {
-    const assetDetails = await new AssetsManagerService().getByAssetId(req.params.assetId);
-    const filePath = path.join(__dirname, '../uploads/', req.params.assetId);
-    console.log(filePath, assetDetails);
-    res.status(200);
-    res.setHeader('Content-disposition', 'attachment; filename=' + assetDetails.filename);
-    res.setHeader('Content-type', assetDetails.mimetype);
-    res.download(filePath, assetDetails.filename);
-});
 
 app.use((_req, res: Response) => {
     res.status(404).send({
