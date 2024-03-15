@@ -6,7 +6,8 @@ export interface IAuthentication {
 
 export interface IAuthenticationResponse {
     token: string;
-    refreshToken: string;
+    expiry: Date;
+    sessionId: string
     callbackURL?: string
 }
 

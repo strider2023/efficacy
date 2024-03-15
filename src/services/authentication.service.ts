@@ -1,10 +1,12 @@
 import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 import * as jwt from 'jsonwebtoken';
-import { User, UserSession } from '../entities';
+import { v4 as uuidv4 } from 'uuid';
+import { User } from '../entities';
 import { Status, UserTypes } from '../enums';
 import { IAppResponse, IAuthentication, IAuthenticationResponse, IUser } from '../interfaces';
-import { LessThan } from 'typeorm';
+import { RedisClient } from '../config/redis-config';
+import { AuthError } from '../errors';
 
 dotenv.config();
 
@@ -13,68 +15,31 @@ const { SECRET_KEY, TOKEN_ISSUER } =
 
 export class AuthenticationService {
 
-    public async authenticate(request: IAuthentication): Promise<IAuthenticationResponse | IAppResponse> {
-        const errorResponse: IAppResponse = {
-            status: 500,
-            message: "Invalid login credentials"
-        };
+    public async authenticate(request: IAuthentication): Promise<IAuthenticationResponse> {
         const user = await User.findOneBy({
             email: request.email,
             status: Status.ACTIVE
         });
         if (!user) {
-            return errorResponse;
+            throw new AuthError("Authentication Error", 401, "Invalid user.")
         }
         const valid = await bcrypt.compare(request.password, user.password);
         if (!valid) {
-            return errorResponse;
+            throw new AuthError("Authentication Error", 401, "Invalid password.")
         }
-        // Create token
-        const token = jwt.sign({
-            firstname: user.firstname,
-            middlename: user.middlename || '',
-            lastname: user.lastname,
-            email: request.email,
-            image: user.image || '',
-            role: user.role
-        }, SECRET_KEY, { expiresIn: '1h', issuer: TOKEN_ISSUER });
-        // console.log(token);
-        // Remove old sessions that have expired
-        await UserSession.delete({
-            expiry: LessThan(new Date())
-        });
-        // Create session entry in database
-        // TODO: Move it to in memory
-        const expiresIn = new Date();
-        expiresIn.setHours(expiresIn.getHours() + 1);
-        const userSession = new UserSession();
-        userSession.token = token;
-        userSession.expiry = expiresIn;
-        await userSession.save()
-        const response: IAuthenticationResponse = {
-            token: userSession.token,
-            refreshToken: userSession.refreshToken,
-            callbackURL: request.callbackURL
-        }
-        return response;
+        return this.createSession(user, request.callbackURL);
     }
 
-    public async registerUser(request: IUser): Promise<IAuthenticationResponse | IAppResponse> {
-        let errorResponse: IAppResponse = {
-            status: 500,
-            message: ""
-        };
+    public async registerUser(request: IUser): Promise<IAuthenticationResponse> {
         if (request.role == UserTypes.ADMIN || request.role == UserTypes.PORTAL_USER) {
-            errorResponse.message = "Only a admin can create an admin or admin portal user account."
-            return errorResponse;
+            throw new AuthError("Permission Error", 403, "Only a admin can create an admin or admin portal user account.")
         }
         let user = await User.findOneBy({
             email: request.email,
             status: Status.ACTIVE
         });
         if (user) {
-            errorResponse.message = "User with given email id already exists."
-            return errorResponse;
+            throw new AuthError("Permission Error", 403, "User with given email id already exists.")
         }
         const salt = bcrypt.genSaltSync(10);
         user = new User()
@@ -87,43 +52,55 @@ export class AuthenticationService {
         user.dob = request.dob;
         user.role = request.role;
         await user.save();
-        const token = jwt.sign({
-            firstname: user.firstname,
-            middlename: user.middlename || '',
-            lastname: user.lastname,
+        return this.createSession(user);
+    }
+
+    public async refreshToken(request: any, token: string): Promise<IAuthenticationResponse> {
+        const userSessionToken = await RedisClient.getInstance().getClient().get(request.sessionId);
+        if (userSessionToken != token) {
+            throw new AuthError("Authentication Error", 401, "Invalid token.")
+        }
+        const user = await User.findOneBy({
             email: request.email,
-            image: user.image || '',
-            role: user.role
-        }, SECRET_KEY, { expiresIn: '1h', issuer: TOKEN_ISSUER });
+            status: Status.ACTIVE
+        });
+        if (!user) {
+            throw new AuthError("Authentication Error", 401, "Invalid user.")
+        }
+        return this.createSession(user);
+    }
+
+    public async logout(sessionId: string): Promise<IAppResponse> {
+        const apiResponse: IAppResponse = {
+            status: 200,
+            message: "User logged out successfully"
+        };
+        await await RedisClient.getInstance().getClient().del(sessionId);
+        return apiResponse;
+    }
+
+    private async createSession(user: User, callbackUrl?: string): Promise<IAuthenticationResponse> {
+        // Create token
+        const tokenBody = {
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            role: user.role,
+            sessionId: uuidv4()
+        }
+        const token = jwt.sign(tokenBody, SECRET_KEY, { expiresIn: '1h', issuer: TOKEN_ISSUER });
+        // console.log(token);
         // Create session entry in database
-        // TODO: Move it to in memory
         const expiresIn = new Date();
         expiresIn.setHours(expiresIn.getHours() + 1);
-        const userSession = new UserSession();
-        userSession.token = token;
-        userSession.expiry = expiresIn;
-        await userSession.save()
-        const response: IAuthenticationResponse = {
-            token: userSession.token,
-            refreshToken: userSession.refreshToken
+        await RedisClient.getInstance().getClient().set(tokenBody.sessionId, token);
+        await RedisClient.getInstance().getClient().expireAt(tokenBody.sessionId, expiresIn);
+        return {
+            token: token,
+            expiry: expiresIn,
+            sessionId: tokenBody.sessionId,
+            callbackURL: callbackUrl
         }
-        return response;
-    }
-
-    public async refreshToken(request: IAuthenticationResponse): Promise<IAuthenticationResponse | IAppResponse> {
-        const errorResponse: IAppResponse = {
-            status: 500,
-            message: "Invalid login credentials"
-        };
-        return errorResponse;
-    }
-
-    public async logout(request: IAuthenticationResponse): Promise<IAppResponse> {
-        const errorResponse: IAppResponse = {
-            status: 500,
-            message: "Invalid login credentials"
-        };
-        return errorResponse;
     }
 
 }

@@ -9,8 +9,7 @@ import {
     MetadataViewProperty,
     ArrayViewProperty,
     AccessGroup,
-    User,
-    UserSession
+    User
 } from "./entities";
 
 dotenv.config();
@@ -29,7 +28,6 @@ export const AppDataSource = new DataSource({
     logging: NODE_ENV === "dev" ? false : false,
     entities: [
         User,
-        UserSession,
         AppBaseEntity,
         AccessGroup,
         ApplicationAsset,

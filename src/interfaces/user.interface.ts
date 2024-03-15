@@ -9,6 +9,12 @@ export interface IUser {
     role?: string
 }
 
+export interface IUserSession {
+    sessionId: string;
+    token: string;
+    expiry: Date;
+}
+
 export interface IUpdatePassword {
     oldPassword: string;
     newPassword: string;

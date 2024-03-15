@@ -13,11 +13,13 @@ import { AssetsManagerService } from "./services/assets-manager.service";
 import * as cors from "cors";
 import { bootstrapEfficacy } from "./config/bootstrap-config";
 import { rateLimiterConfig } from "./config/rate-limiter-config";
+import { errorHandlerMiddleware } from "./config/error-config";
+import { RedisClient } from "./config/redis-config";
 
 dotenv.config();
 
 const { PORT = 3000 } = process.env;
-
+let server = null;
 const app = express();
 app.use(express.json());
 app.use(morgan("tiny"));
@@ -61,32 +63,32 @@ app.use((_req, res: Response) => {
     });
 });
 
-app.use((
-    err: unknown,
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Response | void => {
-    if (err instanceof ValidateError) {
-        console.warn(`Caught Validation Error for ${req.path}:`, err.fields);
-        return res.status(422).json({
-            message: "Validation Failed",
-            details: err?.fields,
-        });
-    }
-    if (err instanceof Error) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-        });
-    }
-
-    next();
-});
+app.use(errorHandlerMiddleware);
 
 AppDataSource.initialize().then(async () => {
-    app.listen(PORT, () => {
+    RedisClient.getInstance().connect();
+    server = app.listen(PORT, () => {
         console.log("Server is running on http://localhost:" + PORT);
     });
     console.log("Data Source has been initialized!");
     bootstrapEfficacy();
 }).catch(error => console.log(error))
+
+process.on('SIGTERM', shutDown);
+process.on('SIGINT', shutDown);
+
+function shutDown() {
+    console.log('Received kill signal, shutting down gracefully');
+    RedisClient.getInstance().disconnect();
+    server.close(() => {
+        console.log('Closed out remaining connections');
+        process.exit(0);
+    });
+
+    setTimeout(() => {
+        console.error('Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+    }, 10000);
+
+    AppDataSource.destroy();
+}

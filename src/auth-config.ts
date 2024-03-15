@@ -2,6 +2,8 @@
 import * as dotenv from "dotenv";
 import * as express from "express";
 import * as jwt from 'jsonwebtoken';
+import { AuthError } from "./errors";
+import { RedisClient } from "./config/redis-config";
 
 dotenv.config();
 
@@ -18,21 +20,42 @@ export function expressAuthentication(
 
         return new Promise((resolve, reject) => {
             if (!token) {
-                reject(new Error('No token provided'));
+                reject(new AuthError(
+                    "Authentication Error", 
+                    401, 
+                    "Authorization header is missing."));
             }
 
             jwt.verify(token, SECRET_KEY, function (err: any, decoded: any) {
-                console.log(err, decoded)
+                // console.log(err, decoded)
                 if (err) {
-                    reject(err);
+                    reject(new AuthError(
+                        "Authentication Error", 
+                        401, 
+                        err));
                 } else {
-                    if (!scopes.includes(decoded.role)) {
-                        reject(new Error("JWT does not contain required scope."));
-                    }
-                    if (decoded.iss != TOKEN_ISSUER) {
-                        reject(new Error('JWT error'));
-                    }
-                    resolve(decoded);
+                    RedisClient.getInstance().getClient().get(decoded.sessionId).then(() => {
+                        if (scopes.length > 0) {
+                            if (!scopes.includes(decoded.role)) {
+                                reject(new AuthError(
+                                    "User Permission Error", 
+                                    403, 
+                                    "You are not authorized to perform this operation."));
+                            }
+                        }
+                        if (decoded.iss != TOKEN_ISSUER) {
+                            reject(new AuthError(
+                                "Authentication Error", 
+                                401, 
+                                "Invalid token."));
+                        }
+                        resolve(decoded);
+                    }).catch(() => {
+                        reject(new AuthError(
+                            "Invalid token", 
+                            401, 
+                            "Invalid user token"));
+                    });
                 }
             });
         });
