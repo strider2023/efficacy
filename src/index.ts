@@ -12,18 +12,19 @@ import { bootstrapEfficacy } from "./config/bootstrap-config";
 import { rateLimiterConfig } from "./config/rate-limiter-config";
 import { errorHandlerMiddleware } from "./config/error-config";
 import { RedisClient } from "./config/redis-config";
+import * as path from "path";
 
 dotenv.config();
 
 const { PORT = 3000 } = process.env;
 let server = null;
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '5MB' }));
 app.use(morgan("tiny"));
-app.use(express.static('admin'));
 app.use(cors());
 app.use(helmet());
 app.use(rateLimiterConfig);
+app.use(express.static('public'));
 
 app.use("/api-docs",
     swaggerUi.serve,
@@ -37,10 +38,6 @@ app.use("/api-docs",
                 })
         );
     });
-
-app.get("/", (req, res) => {
-    res.sendFile('/admin/index.html');
-});
 
 RegisterRoutes(app);
 

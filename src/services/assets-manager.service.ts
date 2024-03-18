@@ -27,8 +27,6 @@ export class AssetsManagerService {
         description?: string,
         tags?: string[]): Promise<ApplicationAsset> {
         try {
-
-
             const appAsset = new ApplicationAsset()
             appAsset.assetId = file.filename;
             appAsset.filename = file.originalname;

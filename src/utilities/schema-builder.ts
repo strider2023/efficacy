@@ -1,13 +1,13 @@
 import { ICollection, ICollectionItems, ICollectionItemsQuery } from "../interfaces";
 import { CollectionItemFilterOperations, PropertyTypes } from "../enums";
-import { knexConfig } from "../config/knex-config";
+import { getDatabaseAdapter } from "../database/knex-config";
 import { Collection } from "../entities";
 
 //https://devhints.io/knex
 export class SchemaBuilder {
 
     public async syncTables() {
-        const tables = await knexConfig.select(['schemaname', 'tablename', 'tableowner', 'tablespace', 'hasindexes', 'hasrules', 'hastriggers', 'rowsecurity'])
+        const tables = await getDatabaseAdapter().select(['schemaname', 'tablename', 'tableowner', 'tablespace', 'hasindexes', 'hasrules', 'hastriggers', 'rowsecurity'])
             .from('pg_catalog.pg_tables').where((qb) => {
                 qb.whereNot('schemaname', 'pg_catalog');
                 qb.whereNot('schemaname', 'information_schema');
@@ -16,7 +16,7 @@ export class SchemaBuilder {
         console.log(tables)
         for (const t of tables) {
             console.log(t.tablename)
-            const columns = await knexConfig.select([
+            const columns = await getDatabaseAdapter().select([
                 'column_name as propertyName',
                 'ordinal_position as poistion',
                 'column_default as default',
@@ -31,10 +31,10 @@ export class SchemaBuilder {
     }
 
     public async createTable(request: ICollection): Promise<boolean> {
-        await knexConfig.schema.dropTableIfExists(request.tableName);
-        await knexConfig.schema.withSchema(request.schemaName || 'efficacy')
+        await getDatabaseAdapter().schema.dropTableIfExists(request.tableName);
+        await getDatabaseAdapter().schema.withSchema(request.schemaName || 'efficacy')
             .createTable(request.tableName, function (t) {
-                t.uuid("id", { primaryKey: true }).defaultTo(knexConfig.raw("uuid_generate_v4()"));
+                t.uuid("id", { primaryKey: true }).defaultTo(getDatabaseAdapter().raw("uuid_generate_v4()"));
                 // Loop through properties
                 for (const property of request.properties) {
                     let tableProp;
@@ -80,12 +80,12 @@ export class SchemaBuilder {
     }
 
     public async removeTable(schemaName: string, tableName: string) {
-        await knexConfig.schema.withSchema(schemaName)
+        await getDatabaseAdapter().schema.withSchema(schemaName)
             .dropTableIfExists(tableName);
     }
 
     public async getData(itemId: string, tableName: string): Promise<Record<string, any>> {
-        const result = await knexConfig
+        const result = await getDatabaseAdapter()
             .from(tableName)
             .where({ id: itemId })
             .first();
@@ -93,19 +93,19 @@ export class SchemaBuilder {
     }
 
     public async insertData(tableName: string, request: Record<string, any>) {
-        await knexConfig
+        await getDatabaseAdapter()
             .insert(request)
             .into(tableName);
     }
 
     public async updateData(itemId: string, tableName: string, request: Record<string, any>) {
-        await knexConfig(tableName)
+        await getDatabaseAdapter()(tableName)
             .where({ id: itemId })
             .update(request);
     }
 
     public async removeData(itemId: string, tableName: string) {
-        await knexConfig(tableName)
+        await getDatabaseAdapter()(tableName)
             .where({ id: itemId })
             .del();
     }
@@ -115,7 +115,7 @@ export class SchemaBuilder {
             result: []
         }
         try {
-            const queryProps = knexConfig.from(`${collection.schemaName}.${collection.tableName}`);
+            const queryProps = getDatabaseAdapter().from(`${collection.schemaName}.${collection.tableName}`);
             if (query.properties) {
                 queryProps.select(query.properties);
             }
@@ -137,7 +137,7 @@ export class SchemaBuilder {
             }
             response.result = await queryProps;
             if (query.showCount) {
-                response.count = await knexConfig.from(`${collection.schemaName}.${collection.tableName}`).count('id');
+                response.count = await getDatabaseAdapter().from(`${collection.schemaName}.${collection.tableName}`).count('id');
             }
         } catch (e) {
             console.error(e);
