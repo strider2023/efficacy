@@ -22,7 +22,7 @@ export class AssetsManagerService extends BaseService<Assets>{
                 description: description,
                 tags: tags
             }
-            await this.db()
+            await this.db
                 .into(this.tableName)
                 .insert(request);
         } catch (e) {

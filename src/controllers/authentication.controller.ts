@@ -1,5 +1,5 @@
 import { Post, Route, Tags, Body, Patch, Security, Request, Controller, SuccessResponse } from "tsoa";
-import { AuthenticationService } from "../services";
+import { UserService } from "../services";
 import { IAuthentication, IAuthenticationResponse, CreateUser } from "../interfaces";
 import express from "express";
 
@@ -11,14 +11,14 @@ export class AuthenticationController extends Controller {
     public async login(
         @Body() request: IAuthentication
     ): Promise<IAuthenticationResponse> {
-        return new AuthenticationService().authenticate(request);
+        return new UserService().authenticate(request);
     }
 
     @Post("/register")
     public async register(
         @Body() request: CreateUser
     ): Promise<IAuthenticationResponse> {
-        return new AuthenticationService().registerUser(request);
+        return new UserService().registerUser(request);
     }
 
     @Post("/refresh")
@@ -28,7 +28,7 @@ export class AuthenticationController extends Controller {
         @Request() request: any,
     ): Promise<IAuthenticationResponse> {
         const token = exReq.headers['authorization'];
-        return new AuthenticationService().refreshToken(request.user, token);
+        return new UserService().refreshToken(request.user, token);
     }
 
     @SuccessResponse("200", "Updated") 
@@ -38,7 +38,7 @@ export class AuthenticationController extends Controller {
         @Request() request: express.Request,
     ): Promise<void> {
         const token = request.headers['authorization'];
-        new AuthenticationService().logout(token);
+        new UserService().logout(token);
         return;
     }
 }

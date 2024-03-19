@@ -2,20 +2,21 @@ import { AppGetAll, AppQueryParams } from "../interfaces";
 import { CollectionItemFilterOperations, Status } from "../enums";
 import { getDatabaseAdapter } from "../database/knex-config";
 import { ApiError } from "../errors";
+import { RedisClient } from "../config/redis-config";
 
 export abstract class BaseService<BaseSchema> {
 
     tableName = null;
     entityName = '';
     schema: BaseSchema;
+    cache = null;
+    db = null;
 
     constructor(tableName: string, entityName: string) {
         this.tableName = tableName;
         this.entityName = entityName;
-    }
-
-    public db() {
-        return getDatabaseAdapter();
+        this.cache = RedisClient.getInstance().getClient();
+        this.db = getDatabaseAdapter();
     }
 
     public async getAll(queryParams: AppQueryParams, status?: Status): Promise<AppGetAll> {

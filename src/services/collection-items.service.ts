@@ -30,7 +30,7 @@ export class CollectionItemsService extends Controller {
         return properties;
     }
 
-    public async createCollectionItem(
+    public async create(
         collectionId: string,
         request: Record<string, any>) {
         // Check if collection exists
@@ -51,7 +51,7 @@ export class CollectionItemsService extends Controller {
         }
     }
 
-    public async updateCollectionItem(
+    public async update(
         collectionId: string,
         itemId: string,
         request: Record<string, any>) {
@@ -73,7 +73,7 @@ export class CollectionItemsService extends Controller {
         }
     }
 
-    public async removeCollectionItem(
+    public async delete(
         collectionId: string,
         itemId: string) {
         // Check if collection exists
@@ -93,7 +93,7 @@ export class CollectionItemsService extends Controller {
         }
     }
 
-    public async getCollectionItem(
+    public async get(
         collectionId: string,
         itemId: string): Promise<Record<string, any>> {
         // Check if collection exists
@@ -113,7 +113,7 @@ export class CollectionItemsService extends Controller {
         }
     }
 
-    public async getCollectionItems(
+    public async getAll(
         collectionId: string,
         request: ICollectionItemsQuery): Promise<ICollectionItems> {
         let response: ICollectionItems = {
