@@ -1,4 +1,4 @@
-export interface IUser {
+export interface CreateUser {
     firstname: string;
     middlename?: string;
     lastname: string;
@@ -6,16 +6,24 @@ export interface IUser {
     email: string;
     password: string;
     dob?: Date;
-    role?: string
+    role: string
+}
+
+export interface UpdateUser {
+    firstname: string;
+    middlename?: string;
+    lastname: string;
+    phone?: string;
+    dob?: Date;
+}
+
+export interface UpdatePassword {
+    oldPassword: string;
+    newPassword: string;
 }
 
 export interface IUserSession {
     sessionId: string;
     token: string;
     expiry: Date;
-}
-
-export interface IUpdatePassword {
-    oldPassword: string;
-    newPassword: string;
 }

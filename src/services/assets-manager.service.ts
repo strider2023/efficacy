@@ -1,46 +1,32 @@
-import { Status } from "../enums";
-import { ApplicationAsset } from "../entities";
 import { ApiError } from "../errors";
+import { BaseService } from "./base.service";
+import { Assets } from "src/schemas/assets.schema";
 
-export class AssetsManagerService {
+export class AssetsManagerService extends BaseService<Assets>{
 
-    public async getAllAssets(): Promise<ApplicationAsset[]> {
-        const assets = await ApplicationAsset.find({
-            where: {
-                status: Status.ACTIVE
-            }
-        });
-        return assets;
+    constructor() {
+        super('efficacy.efficacy_assets', 'Assets')
     }
 
-    public async getByAssetId(assetId: string): Promise<ApplicationAsset> {
-        const asset = await ApplicationAsset.findOne({
-            where: {
-                assetId: assetId,
-                status: Status.ACTIVE
-            }
-        });
-        return asset;
-    }
-
-    public async create(file: Express.Multer.File,
+    public async uploadFile(file: Express.Multer.File,
         description?: string,
-        tags?: string[]): Promise<ApplicationAsset> {
+        tags?: string[]) {
         try {
-            const appAsset = new ApplicationAsset()
-            appAsset.assetId = file.filename;
-            appAsset.filename = file.originalname;
-            appAsset.mimetype = file.mimetype;
-            appAsset.filesize = file.size;
-            appAsset.destination = file.destination;
-            appAsset.path = file.path;
-            appAsset.description = description;
-            appAsset.tags = tags;
-            await appAsset.save();
-            return appAsset;
+            const request = {
+                assetId: file.filename,
+                filename: file.originalname,
+                mimetype: file.mimetype,
+                filesize: file.size,
+                destination: file.destination,
+                path: file.path,
+                description: description,
+                tags: tags
+            }
+            await this.db()
+                .into(this.tableName)
+                .insert(request);
         } catch (e) {
-            throw new ApiError("Upload Asset Error", 500, e.message);
+            throw new ApiError(`Error creating entry for ${this.entityName}`, 500, e.message);
         }
     }
-
 }

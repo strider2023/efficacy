@@ -1,8 +1,7 @@
-import { Post, Route, Tags, Get, Request, Queries, UploadedFile, FormField, Middlewares, Security, Controller, Path } from "tsoa";
+import { Post, Route, Tags, Get, Request, Queries, UploadedFile, FormField, Middlewares, Security, Controller, Path, Delete } from "tsoa";
 import { AssetsManagerService } from "../services";
-import { ApplicationAsset } from "../entities";
 import express from "express";
-import { IAppQueryParams } from "../interfaces";
+import { AppGetAll, AppQueryParams } from "../interfaces";
 import { multerMiddleware } from "../config/multer-config";
 import * as path from "path";
 import * as fs from 'fs';
@@ -15,9 +14,9 @@ export class AssetsManagerController extends Controller {
     @Get()
     @Security("jwt", ["admin"])
     public async getFiles(
-        @Queries() queryParams: IAppQueryParams
-    ): Promise<ApplicationAsset[]> {
-        return await new AssetsManagerService().getAllAssets();
+        @Queries() queryParams: AppQueryParams
+    ): Promise<AppGetAll> {
+        return await new AssetsManagerService().getAll(queryParams);
     }
 
     @Post("upload")
@@ -28,12 +27,13 @@ export class AssetsManagerController extends Controller {
         @FormField() description?: string,
         @FormField() tags?: string[],
         // @UploadedFile() file?: Express.Multer.File,
-    ): Promise<ApplicationAsset> {
-        console.log(request.file);
-        return await new AssetsManagerService().create(
+    ): Promise<void> {
+        // console.log(request.file);
+        await new AssetsManagerService().uploadFile(
             request.file,
             description,
             tags);
+        return;
     }
 
     @Get("{assetId}")
@@ -42,9 +42,8 @@ export class AssetsManagerController extends Controller {
         @Path() assetId: string,
     ) {
         try {
-            const assetDetails = await new AssetsManagerService().getByAssetId(assetId);
-            const filePath = path.join(__dirname, '../../', assetDetails.destination, assetId);
-            console.log(filePath, assetDetails);
+            const assetDetails = await new AssetsManagerService().get(assetId, 'assetId');
+            const filePath = path.join(__dirname, '../../', assetDetails.destination, assetDetails.assetId);
             request.res.status(200);
             request.res.setHeader('Content-disposition', 'attachment; filename=' + assetDetails.filename);
             request.res.setHeader('Content-type', assetDetails.mimetype);
@@ -57,6 +56,20 @@ export class AssetsManagerController extends Controller {
                     resolve();
                 })
             })
+        } catch (e) {
+            throw new ApiError("Download Asset error", 500, e.message);
+        }
+    }
+
+    @Delete("{assetId}")
+    public async deleteFile(
+        @Path() assetId: string,
+    ) {
+        try {
+            const assetDetails = await new AssetsManagerService().get(assetId, 'assetId');
+            const filePath = path.join(__dirname, '../../', assetDetails.destination, assetDetails.assetId);
+            fs.unlinkSync(filePath);
+            await new AssetsManagerService().delete(assetId, 'assetId');
         } catch (e) {
             throw new ApiError("Download Asset error", 500, e.message);
         }

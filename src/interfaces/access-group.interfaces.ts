@@ -1,10 +1,10 @@
-export interface IAccessGroup {
+export interface CreateAccessGroup {
     accessGroupId: string
     displayName: string
     description?: string
 }
 
-export interface IUpdateAccessGroup {
+export interface UpdateAccessGroup {
     displayName: string
     description?: string
 }

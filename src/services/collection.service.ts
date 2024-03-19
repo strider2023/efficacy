@@ -9,7 +9,7 @@ import {
 import {
     IArrayViewProperty,
     ICollection,
-    IAppQueryParams,
+    AppQueryParams,
     IMetadataProperty,
     IMetadataViewProperty
 } from "../interfaces";
@@ -20,7 +20,7 @@ export class CollectionService {
         new SchemaBuilder().syncTables();
     }
 
-    public async getAllCollections(queryParams: IAppQueryParams): Promise<Collection[]> {
+    public async getAllCollections(queryParams: AppQueryParams): Promise<Collection[]> {
         const queryObject = { where: { status: Status.ACTIVE } };
         if (queryParams.properties) {
             queryObject['select'] = queryParams.properties;

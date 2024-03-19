@@ -2,11 +2,12 @@ import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 import * as jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '../entities';
 import { Status, UserTypes } from '../enums';
-import { IAppResponse, IAuthentication, IAuthenticationResponse, IUser } from '../interfaces';
+import { IAuthentication, IAuthenticationResponse, CreateUser } from '../interfaces';
 import { RedisClient } from '../config/redis-config';
 import { AuthError } from '../errors';
+import { getDatabaseAdapter } from '../database/knex-config';
+import { User } from '../schemas';
 
 dotenv.config();
 
@@ -15,11 +16,15 @@ const { SECRET_KEY, TOKEN_ISSUER } =
 
 export class AuthenticationService {
 
+    tableName = 'efficacy.efficacy_user';
+
     public async authenticate(request: IAuthentication): Promise<IAuthenticationResponse> {
-        const user = await User.findOneBy({
-            email: request.email,
-            status: Status.ACTIVE
-        });
+        const user = await getDatabaseAdapter()
+            .from(this.tableName)
+            .where('email', request.email)
+            .where('status', Status.ACTIVE)
+            .first();
+        // console.log(user);
         if (!user) {
             throw new AuthError("Authentication Error", 401, "Invalid user.")
         }
@@ -30,29 +35,24 @@ export class AuthenticationService {
         return this.createSession(user, request.callbackURL);
     }
 
-    public async registerUser(request: IUser): Promise<IAuthenticationResponse> {
+    public async registerUser(request: CreateUser): Promise<IAuthenticationResponse> {
         if (request.role == UserTypes.ADMIN || request.role == UserTypes.PORTAL_USER) {
             throw new AuthError("Permission Error", 403, "Only a admin can create an admin or admin portal user account.")
         }
-        let user = await User.findOneBy({
-            email: request.email,
-            status: Status.ACTIVE
-        });
+        let user = await getDatabaseAdapter()
+            .from(this.tableName)
+            .where('email', request.email)
+            .where('status', Status.ACTIVE)
+            .first();
         if (user) {
             throw new AuthError("Permission Error", 403, "User with given email id already exists.")
         }
         try {
             const salt = bcrypt.genSaltSync(10);
-            user = new User()
-            user.firstname = request.firstname;
-            user.middlename = request.middlename;
-            user.lastname = request.lastname;
-            user.phone = request.phone;
-            user.email = request.email;
-            user.password = bcrypt.hashSync(request.password, salt);
-            user.dob = request.dob;
-            user.role = request.role;
-            await user.save();
+            request.password = bcrypt.hashSync(request.password, salt);
+            user = await getDatabaseAdapter()
+                .into(this.tableName)
+                .insert(request);
         } catch (e) {
             throw new AuthError("User Registration Error", 500, e.message);
         }
@@ -64,10 +64,11 @@ export class AuthenticationService {
         if (userSessionToken != token) {
             throw new AuthError("Authentication Error", 401, "Invalid token.")
         }
-        const user = await User.findOneBy({
-            email: request.email,
-            status: Status.ACTIVE
-        });
+        const user = await getDatabaseAdapter()
+            .from(this.tableName)
+            .where('email', request.email)
+            .where('status', Status.ACTIVE)
+            .first();
         if (!user) {
             throw new AuthError("Authentication Error", 401, "Invalid user.")
         }

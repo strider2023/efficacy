@@ -5,11 +5,8 @@ import {
     Collection,
     MetadataProperty,
     AppBaseEntity,
-    ApplicationAsset,
     MetadataViewProperty,
-    ArrayViewProperty,
-    AccessGroup,
-    User
+    ArrayViewProperty
 } from "./entities";
 
 dotenv.config();
@@ -27,10 +24,7 @@ export const AppDataSource = new DataSource({
     synchronize: NODE_ENV === "dev" ? true : false,
     logging: NODE_ENV === "dev" ? false : false,
     entities: [
-        User,
         AppBaseEntity,
-        AccessGroup,
-        ApplicationAsset,
         Collection,
         MetadataProperty,
         MetadataViewProperty,

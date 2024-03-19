@@ -1,6 +1,6 @@
 import { Post, Route, Tags, Body, Patch, Security, Request, Controller, SuccessResponse } from "tsoa";
 import { AuthenticationService } from "../services";
-import { IAuthentication, IAuthenticationResponse, IUser } from "../interfaces";
+import { IAuthentication, IAuthenticationResponse, CreateUser } from "../interfaces";
 import express from "express";
 
 @Route("api/auth")
@@ -16,7 +16,7 @@ export class AuthenticationController extends Controller {
 
     @Post("/register")
     public async register(
-        @Body() request: IUser
+        @Body() request: CreateUser
     ): Promise<IAuthenticationResponse> {
         return new AuthenticationService().registerUser(request);
     }

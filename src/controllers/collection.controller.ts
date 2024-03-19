@@ -2,7 +2,7 @@
 import { Body, Controller, Example, Get, Path, Post, Queries, Route, Security, Tags, SuccessResponse, Delete, Put } from "tsoa";
 import { Collection } from "../entities";
 import { CollectionService } from "../services";
-import { ICollection, IAppQueryParams } from "../interfaces";
+import { ICollection, AppQueryParams } from "../interfaces";
 import { MetadataProperty } from "../entities";
 
 @Route("api/collection")
@@ -24,7 +24,7 @@ export class CollectionController extends Controller {
     @Get()
     @Security("jwt", ["admin", "portal_user"])
     public async getCollections(
-        @Queries() queryParams: IAppQueryParams
+        @Queries() queryParams: AppQueryParams
     ): Promise<Collection[]> {
         return new CollectionService().getAllCollections(queryParams);
     }
