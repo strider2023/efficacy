@@ -3,6 +3,7 @@ import { Body, Controller, Get, Path, Post, Queries, Route, Security, Tags, Succ
 import { CollectionService } from "../services";
 import { CreateCollection, AppQueryParams, UpdateCollection, AppGetAll } from "../interfaces";
 import { Collections } from "../schemas";
+import { Status } from "../enums";
 
 @Route("api/collection")
 @Tags("Efficacy Collection APIs")
@@ -25,7 +26,7 @@ export class CollectionController extends Controller {
     public async getCollections(
         @Queries() queryParams: AppQueryParams
     ): Promise<AppGetAll> {
-        return new CollectionService().getAll(queryParams);
+        return new CollectionService().getAll(queryParams, Status.ACTIVE);
     }
 
     @Get("{collectionId}")
@@ -33,7 +34,15 @@ export class CollectionController extends Controller {
     public async get(
         @Path() collectionId: string
     ): Promise<Collections> {
-        return new CollectionService().get(collectionId, 'collectionId');
+        return new CollectionService().get(collectionId);
+    }
+
+    @Get("{collectionId}/revisions")
+    @Security("jwt")
+    public async getHistory(
+        @Path() collectionId: string
+    ): Promise<Collections[]> {
+        return new CollectionService().getHistory(collectionId);
     }
 
     @SuccessResponse("201", "Created")
@@ -43,7 +52,7 @@ export class CollectionController extends Controller {
         @Body() request: CreateCollection)
         : Promise<void> {
         this.setStatus(201)
-        await new CollectionService().create(request);
+        await new CollectionService().createCollection(request);
         return;
     }
 
@@ -54,7 +63,7 @@ export class CollectionController extends Controller {
         @Path() collectionId: string,
         @Body() request: UpdateCollection
     ): Promise<void> {
-        await new CollectionService().update(request, collectionId, 'collectionId');
+        await new CollectionService().updateCollection(request, collectionId);
         return;
     }
 
@@ -64,7 +73,7 @@ export class CollectionController extends Controller {
     public async delete(
         @Path() collectionId: string,
     ): Promise<void> {
-        await new CollectionService().delete(collectionId, 'collectionId');
+        await new CollectionService().deleteCollection(collectionId);
         return;
     }
 }

@@ -9,18 +9,18 @@ export class RolesController extends Controller {
 
     @Get()
     @Security("jwt")
-    public async getAccessGroups(
+    public async getAll(
         @Queries() queryParams: AppQueryParams
     ): Promise<AppGetAll> {
         return new RolesService().getAll(queryParams);
     }
 
-    @Get("{accessGroupId}")
+    @Get("{rolesId}")
     @Security("jwt")
-    public async getAccessGroup(
-        @Path() accessGroupId: string,
+    public async get(
+        @Path() rolesId: string,
     ): Promise<Roles> {
-        return new RolesService().get(accessGroupId, 'accessGroupId');
+        return new RolesService().get(rolesId, 'rolesId');
     }
 
     @SuccessResponse("201", "Created")
@@ -35,23 +35,23 @@ export class RolesController extends Controller {
     }
 
     @SuccessResponse("200", "Updated")
-    @Put("{accessGroupId}")
+    @Put("{rolesId}")
     @Security("jwt")
     public async update(
-        @Path() accessGroupId: string,
+        @Path() rolesId: string,
         @Body() request: UpdateRole
     ): Promise<void> {
-        await new RolesService().update(request, accessGroupId, 'accessGroupId');
+        await new RolesService().update(request, rolesId, 'rolesId');
         return;
     }
 
     @SuccessResponse("200", "Updated")
-    @Delete("{accessGroupId}")
+    @Delete("{rolesId}")
     @Security("jwt")
     public async delete(
-        @Path() accessGroupId: string,
+        @Path() rolesId: string,
     ): Promise<void> {
-        await new RolesService().delete(accessGroupId, 'accessGroupId');
+        await new RolesService().delete(rolesId, 'rolesId');
         return;
     }
 }

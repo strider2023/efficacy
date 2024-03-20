@@ -29,6 +29,10 @@ export class SchemaBuilder {
         }
     }
 
+    /**
+     * 
+     * @param request 
+     */
     public async createTable(request: CreateCollection) {
         try {
             await getDatabaseAdapter().schema.withSchema(request.schemaName || 'public')
@@ -43,6 +47,11 @@ export class SchemaBuilder {
         }
     }
 
+    /**
+     * 
+     * @param schemaName 
+     * @param tableName 
+     */
     public async removeTable(schemaName: string, tableName: string) {
         try {
             await getDatabaseAdapter().schema.withSchema(schemaName)

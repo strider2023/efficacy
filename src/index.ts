@@ -26,17 +26,21 @@ app.use(helmet());
 app.use(rateLimiterConfig);
 app.use(express.static('public'));
 
-app.use(
-    postgraphile(
-        DATABASE_URL,
-        DB_SCHEMA,
-        {
-            watchPg: true,
-            graphiql: true,
-            enhanceGraphiql: true,
-        }
-    )
-);
+// app.use(
+//     postgraphile(
+//         DATABASE_URL,
+//         DB_SCHEMA,
+//         {
+//             watchPg: true,
+//             graphiql: true,
+//             enhanceGraphiql: true,
+//         }
+//     )
+// );
+
+app.get('/', (req, res) => {
+    res.render('index');
+});
 
 app.use("/api-docs",
     swaggerUi.serve,
@@ -62,7 +66,7 @@ app.use((_req, res: Response) => {
 app.use(errorHandlerMiddleware);
 
 try {
-    const server = app.listen(PORT, () => {
+    server = app.listen(PORT, () => {
         console.log("Server is running on port: " + PORT);
         RedisClient.getInstance().connect();
         migrate().then(() => {

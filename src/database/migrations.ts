@@ -93,7 +93,7 @@ export async function migrate() {
                 t.string('collectionId', 100).notNullable();
                 t.string('displayName', 100).notNullable();
                 t.string('description').nullable();
-                t.string('schemaName', 100).notNullable();
+                t.string('schemaName', 100).notNullable().defaultTo('public');
                 t.string('tableName', 100).notNullable();
                 t.integer('version').notNullable();
                 t.boolean('isLatest').notNullable().defaultTo(true);
