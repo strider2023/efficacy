@@ -4,3 +4,4 @@ export * from './collection-properties.service';
 export * from './roles.service';
 export * from './user.service';
 export * from './items.service';
+export * from './activity.service';
