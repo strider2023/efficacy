@@ -121,6 +121,7 @@ export async function migrate() {
                 t.string('regex').nullable();
                 t.specificType('stringOneOf', 'text ARRAY').nullable();
                 t.specificType('stringNoneOf', 'text ARRAY').nullable();
+                t.boolean('stringLengthCheckOperator', ['=', '!=', '<=', '>=', '<', '>']).nullable();
                 t.boolean('stringLengthCheck').nullable();
                 t.boolean('setNumberPositive').nullable();
                 t.boolean('setNumberNegative').nullable();
@@ -129,7 +130,6 @@ export async function migrate() {
                 t.boolean('checkNumberRange').nullable();
                 t.integer('numericPrecision').nullable();
                 t.integer('numericScale').nullable();
-                t.boolean('isEnum').nullable();
                 t.specificType('enumValues', 'text ARRAY').nullable();
                 t.string('dateFormat').nullable();
                 t.string('foreignKeyColumn').nullable();

@@ -7,7 +7,7 @@ export interface CollectionProperty extends BaseSchema {
     description?: string
     type: string
     isRequired: boolean
-    isUnique: boolean
+    isUnique?: boolean
     default?: string
     regex?: string
     stringOneOf?: string[];
@@ -20,7 +20,6 @@ export interface CollectionProperty extends BaseSchema {
     checkNumberRange?: boolean
     numericPrecision?: number
     numericScale?: number
-    isEnum?: boolean
     enumValues?: string[]
     dateFormat?: string
     foreignKeyColumn?: string

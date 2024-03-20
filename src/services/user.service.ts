@@ -1,4 +1,4 @@
-import { Status, UserTypes } from "../enums";
+import { Status } from "../enums";
 import { CreateUser, IAuthToken, Authentication, AuthenticationResponse, UpdatePassword } from "../interfaces";
 import { ApiError, AuthError } from "../errors";
 import { BaseService } from "./base.service";

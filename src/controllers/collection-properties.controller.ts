@@ -1,7 +1,8 @@
 import { Body, Controller, Get, Path, Post, Queries, Route, Security, Tags, SuccessResponse, Delete, Put } from "tsoa";
-import { CollectionItemsService } from "../services";
+import { CollectionPropertiesService } from "../services";
 import { AppQueryParams, AppGetAll, CreateCollectionProperty, UpdateCollectionProperty } from "../interfaces";
 import { CollectionProperty } from "../schemas";
+import { Status } from "../enums";
 
 @Route("api/collection/property")
 @Tags("Efficacy Collection Properties APIs")
@@ -11,24 +12,24 @@ export class CollectionPropertiesController extends Controller {
     public async getAll(
         @Queries() queryParams: AppQueryParams
     ): Promise<AppGetAll> {
-        return new CollectionItemsService().getAll(queryParams);
+        return new CollectionPropertiesService().getAll(queryParams, Status.ACTIVE);
     }
 
     @Get("{propertyName}")
     public async get(
         @Path() propertyName: string,
     ): Promise<CollectionProperty> {
-        return new CollectionItemsService().get(propertyName, 'propertyName');
+        return new CollectionPropertiesService().get(propertyName, 'propertyName');
     }
 
     @SuccessResponse("201", "Created")
     @Post()
     @Security("jwt")
     public async create(
-        @Body() request: CreateCollectionProperty
+        @Body() request: CreateCollectionProperty[]
     ): Promise<void> {
         this.setStatus(201)
-        await new CollectionItemsService().create(request);
+        await new CollectionPropertiesService().createProperties(request);
         return;
     }
 
@@ -39,7 +40,7 @@ export class CollectionPropertiesController extends Controller {
         @Path() propertyName: string,
         @Body() request: UpdateCollectionProperty
     ): Promise<void> {
-        await new CollectionItemsService().update(request, propertyName, 'propertyName');
+        await new CollectionPropertiesService().update(request, propertyName, 'propertyName');
         return;
     }
 
@@ -49,7 +50,7 @@ export class CollectionPropertiesController extends Controller {
     public async delete(
         @Path() propertyName: string,
     ): Promise<void> {
-        await new CollectionItemsService().delete(propertyName, 'propertyName');
+        await new CollectionPropertiesService().delete(propertyName, 'propertyName');
         return;
     }
 }

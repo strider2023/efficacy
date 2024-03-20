@@ -27,9 +27,9 @@ export abstract class BaseService<BaseSchema> {
         try {
             const query = await getDatabaseAdapter()
                 .from(this.tableName)
-            if (status) {
-                query.where('status', Status.ACTIVE)
-            }
+            // if (status) {
+            //     query.where('status', status)
+            // }
             if (queryParams.properties) {
                 query.select(queryParams.properties);
             }
