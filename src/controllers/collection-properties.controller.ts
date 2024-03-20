@@ -19,19 +19,31 @@ export class CollectionPropertiesController extends Controller {
     public async get(
         @Path() propertyName: string,
     ): Promise<CollectionProperty> {
-        return new CollectionPropertiesService().get(propertyName, 'propertyName');
+        return new CollectionPropertiesService().get(propertyName);
     }
 
     @SuccessResponse("201", "Created")
-    @Post()
+    @Post("multiple")
     @Security("jwt")
-    public async create(
+    public async createMultiple(
         @Body() request: CreateCollectionProperty[]
     ): Promise<void> {
         this.setStatus(201)
         await new CollectionPropertiesService().createProperties(request);
         return;
     }
+
+    @SuccessResponse("201", "Created")
+    @Post()
+    @Security("jwt")
+    public async create(
+        @Body() request: CreateCollectionProperty
+    ): Promise<void> {
+        this.setStatus(201)
+        await new CollectionPropertiesService().createProperty(request);
+        return;
+    }
+
 
     @SuccessResponse("200", "Updated")
     @Put("{propertyName}")
@@ -50,7 +62,7 @@ export class CollectionPropertiesController extends Controller {
     public async delete(
         @Path() propertyName: string,
     ): Promise<void> {
-        await new CollectionPropertiesService().delete(propertyName, 'propertyName');
+        await new CollectionPropertiesService().deleteProperty(propertyName);
         return;
     }
 }
