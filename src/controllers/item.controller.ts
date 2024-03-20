@@ -1,21 +1,21 @@
 
 import { Body, Controller, Delete, Get, Path, Post, Put, Queries, Route, SuccessResponse, Tags } from "tsoa";
-import { CollectionItemsService } from "../services";
-import { ICollectionItems, ICollectionItemsQuery } from "../interfaces";
+import { ItemsService } from "../services";
+import { CollectionItems, CollectionItemsQuery } from "../interfaces";
 
 @Route("api/collection")
 @Tags("Efficacy Collection Item APIs")
-export class CollectionItemController extends Controller {
+export class ItemController extends Controller {
 
     @Get("{collectionId}/items")
     public async getCollectionItems(
         @Path() collectionId: string,
-        @Queries() query: ICollectionItemsQuery
-    ): Promise<ICollectionItems> {
-        const response: ICollectionItems = await new CollectionItemsService().getAll(collectionId, query);
-        if (query.showAttributes) {
-            response.attributes = await new CollectionItemsService().getCollectionProperties(collectionId);
-        }
+        @Queries() query: CollectionItemsQuery
+    ): Promise<CollectionItems> {
+        const response: CollectionItems = await new ItemsService().getAll(collectionId, query);
+        // if (query.showAttributes) {
+        //     response.attributes = await new ItemsService().getCollectionProperties(collectionId);
+        // }
         return response;
     }
 
@@ -24,7 +24,7 @@ export class CollectionItemController extends Controller {
         @Path() collectionId: string,
         @Path() itemId: string,
     ): Promise<Record<string, any>> {
-        return await new CollectionItemsService().get(collectionId, itemId);
+        return await new ItemsService().get(collectionId, itemId);
     }
 
     @SuccessResponse("201", "Created") 
@@ -34,7 +34,7 @@ export class CollectionItemController extends Controller {
         @Body() request: Record<string, any>
     ): Promise<void> {
         this.setStatus(201)
-        await new CollectionItemsService().create(collectionId, request);
+        await new ItemsService().create(collectionId, request);
         return;
     }
 
@@ -45,7 +45,7 @@ export class CollectionItemController extends Controller {
         @Path() itemId: string,
         @Body() request: Record<string, any>
     ): Promise<void> {
-        await new CollectionItemsService().update(collectionId, itemId, request);
+        await new ItemsService().update(collectionId, itemId, request);
         return;
     }
 
@@ -55,7 +55,7 @@ export class CollectionItemController extends Controller {
         @Path() collectionId: string,
         @Path() itemId: string,
     ): Promise<void> {
-        await new CollectionItemsService().delete(collectionId, itemId);
+        await new ItemsService().delete(collectionId, itemId);
         return;
     }
 }

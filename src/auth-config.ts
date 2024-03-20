@@ -21,8 +21,8 @@ export function expressAuthentication(
         return new Promise((resolve, reject) => {
             if (!token) {
                 reject(new AuthError(
-                    "Authentication Error", 
-                    401, 
+                    "Authentication Error",
+                    401,
                     "Authorization header is missing."));
             }
 
@@ -30,30 +30,44 @@ export function expressAuthentication(
                 // console.log(err, decoded)
                 if (err) {
                     reject(new AuthError(
-                        "Authentication Error", 
-                        401, 
+                        "Authentication Error",
+                        401,
                         err));
                 } else {
                     RedisClient.getInstance().getClient().get(decoded.sessionId).then(() => {
                         if (scopes.length > 0) {
-                            if (!scopes.includes(decoded.role)) {
-                                reject(new AuthError(
-                                    "User Permission Error", 
-                                    403, 
-                                    "You are not authorized to perform this operation."));
+                            for (const s of scopes) {
+                                if (s == 'admin' && !decoded.adminAccess) {
+                                    reject(new AuthError(
+                                        "User Permission Error",
+                                        403,
+                                        "You are not authorized to perform this operation."));
+                                }
+                                if (s == 'portal' && !decoded.portalAccess) {
+                                    reject(new AuthError(
+                                        "User Permission Error",
+                                        403,
+                                        "You are not authorized to perform this operation."));
+                                }
+                                if (s == 'app' && !decoded.appAccess) {
+                                    reject(new AuthError(
+                                        "User Permission Error",
+                                        403,
+                                        "You are not authorized to perform this operation."));
+                                }
                             }
                         }
                         if (decoded.iss != TOKEN_ISSUER) {
                             reject(new AuthError(
-                                "Authentication Error", 
-                                401, 
+                                "Authentication Error",
+                                401,
                                 "Invalid token."));
                         }
                         resolve(decoded);
                     }).catch(() => {
                         reject(new AuthError(
-                            "Invalid token", 
-                            401, 
+                            "Invalid token",
+                            401,
                             "Invalid user token"));
                     });
                 }

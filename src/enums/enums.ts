@@ -17,8 +17,10 @@ export enum UserTypes {
 }
 
 export enum Status {
-    ACTIVE = "active",
-    DELETED = "deleted",
+    ACTIVE = 'active',
+    DELETED = 'deleted',
+    ARCHIVED = 'archived',
+    INACTIVE = 'inactive'
 }
 
 export enum PropertyTypes {
@@ -60,7 +62,7 @@ export enum DateFormats {
     MONTH_DATE_YEAR = 'MDY',
 }
 
-export enum CollectionItemFilterOperations {
+export enum FilterOperations {
     LIKE = 'like',
     EQUALS = '=',
     NOT_EQUALS = '!=',

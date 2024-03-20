@@ -1,6 +1,6 @@
 import { Post, Route, Tags, Body, Patch, Security, Request, Controller, SuccessResponse } from "tsoa";
 import { UserService } from "../services";
-import { IAuthentication, IAuthenticationResponse, CreateUser } from "../interfaces";
+import { Authentication, AuthenticationResponse, CreateUser, RefershPassword } from "../interfaces";
 import express from "express";
 
 @Route("api/auth")
@@ -9,26 +9,24 @@ export class AuthenticationController extends Controller {
 
     @Post("/login")
     public async login(
-        @Body() request: IAuthentication
-    ): Promise<IAuthenticationResponse> {
+        @Body() request: Authentication
+    ): Promise<AuthenticationResponse> {
         return new UserService().authenticate(request);
     }
 
     @Post("/register")
     public async register(
         @Body() request: CreateUser
-    ): Promise<IAuthenticationResponse> {
+    ): Promise<AuthenticationResponse> {
         return new UserService().registerUser(request);
     }
 
     @Post("/refresh")
-    @Security("jwt")
     public async refreshToken(
-        @Request() exReq: express.Request,
+        @Body() exReq: RefershPassword,
         @Request() request: any,
-    ): Promise<IAuthenticationResponse> {
-        const token = exReq.headers['authorization'];
-        return new UserService().refreshToken(request.user, token);
+    ): Promise<AuthenticationResponse> {
+        return new UserService().refreshToken(request.user, exReq.token);
     }
 
     @SuccessResponse("200", "Updated") 

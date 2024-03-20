@@ -1,17 +1,18 @@
 import { AppGetAll, AppQueryParams } from "../interfaces";
-import { CollectionItemFilterOperations, Status } from "../enums";
+import { FilterOperations, Status } from "../enums";
 import { getDatabaseAdapter } from "../database/knex-config";
 import { ApiError } from "../errors";
 import { RedisClient } from "../config/redis-config";
+import { RedisClientType } from "redis";
 
 export abstract class BaseService<BaseSchema> {
 
-    tableName = null;
-    entityName = '';
-    schema: BaseSchema;
-    cache = null;
-    db = null;
-
+    readonly tableName: string;
+    readonly entityName: string;
+    readonly schema: BaseSchema;
+    readonly cache: RedisClientType;
+    readonly db: any;
+    
     constructor(tableName: string, entityName: string) {
         this.tableName = tableName;
         this.entityName = entityName;
@@ -42,7 +43,7 @@ export abstract class BaseService<BaseSchema> {
                 query.orderBy(queryParams.sortByProperty, queryParams.ascending ? 'asc' : 'desc');
             }
             if (queryParams.filterByProperty && queryParams.filterValue && queryParams.filterOperation) {
-                if (queryParams.filterOperation === CollectionItemFilterOperations.LIKE) {
+                if (queryParams.filterOperation === FilterOperations.LIKE) {
                     query.where(queryParams.filterByProperty, queryParams.filterOperation, `%${queryParams.filterValue.replaceAll('%', '\\%')}%`);
                 } else {
                     query.where(queryParams.filterByProperty, queryParams.filterOperation, queryParams.filterValue);

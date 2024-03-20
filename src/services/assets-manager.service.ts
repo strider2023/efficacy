@@ -1,11 +1,12 @@
+import { TABLE_ASSETS } from "../constants/tables.constants";
 import { ApiError } from "../errors";
 import { BaseService } from "./base.service";
-import { Assets } from "src/schemas/assets.schema";
+import { Assets } from "../schemas";
 
 export class AssetsManagerService extends BaseService<Assets>{
 
     constructor() {
-        super('efficacy.efficacy_assets', 'Assets')
+        super(TABLE_ASSETS, 'Assets')
     }
 
     public async uploadFile(file: Express.Multer.File,

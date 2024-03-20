@@ -1,5 +1,5 @@
 import { Status, UserTypes } from "../enums";
-import { CreateUser, IAuthToken, IAuthentication, IAuthenticationResponse, UpdatePassword } from "../interfaces";
+import { CreateUser, IAuthToken, Authentication, AuthenticationResponse, UpdatePassword } from "../interfaces";
 import { ApiError, AuthError } from "../errors";
 import { BaseService } from "./base.service";
 import { User } from "../schemas";
@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 import * as jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import { TABLE_ROLES, TABLE_USERS } from "../constants/tables.constants";
 
 dotenv.config();
 
@@ -16,13 +17,10 @@ const { SECRET_KEY, TOKEN_ISSUER } =
 export class UserService extends BaseService<User> {
 
     constructor() {
-        super('efficacy.efficacy_user', 'User')
+        super(TABLE_USERS, 'User')
     }
 
-    public async registerUser(request: CreateUser): Promise<IAuthenticationResponse> {
-        if (request.role == UserTypes.ADMIN || request.role == UserTypes.PORTAL_USER) {
-            throw new AuthError("Permission Error", 403, "Only a admin can create an admin or admin portal user account.")
-        }
+    public async registerUser(request: CreateUser): Promise<AuthenticationResponse> {
         let user = await this.db
             .from(this.tableName)
             .where('email', request.email)
@@ -66,7 +64,7 @@ export class UserService extends BaseService<User> {
         }
     }
 
-    public async authenticate(request: IAuthentication): Promise<IAuthenticationResponse> {
+    public async authenticate(request: Authentication): Promise<AuthenticationResponse> {
         const user = await this.db
             .from(this.tableName)
             .where('email', request.email)
@@ -83,7 +81,7 @@ export class UserService extends BaseService<User> {
         return this.createSession(user, request.callbackURL);
     }
 
-    public async refreshToken(request: any, token: string): Promise<IAuthenticationResponse> {
+    public async refreshToken(request: any, token: string): Promise<AuthenticationResponse> {
         const userSessionToken = await this.cache.get(request.sessionId);
         if (userSessionToken != token) {
             throw new AuthError("Authentication Error", 401, "Invalid token.")
@@ -100,18 +98,32 @@ export class UserService extends BaseService<User> {
     }
 
     public async logout(sessionId: string) {
-        await this.cache().del(sessionId);
+        await this.cache.del(sessionId);
     }
 
     ////////////////////////////// Private Functions ////////////////////////////
+    private async getRole(role: string) {
+        const collection = await this.db
+            .from(TABLE_ROLES)
+            .where('id', role)
+            .first();
+        return collection;
+    }
 
-    private async createSession(user: User, callbackUrl?: string): Promise<IAuthenticationResponse> {
+    private async createSession(user: User, callbackUrl?: string): Promise<AuthenticationResponse> {
+        const role = await this.db
+            .from(TABLE_ROLES)
+            .where('id', user.roleId)
+            .first();
         // Create token
         const tokenBody = {
             firstname: user.firstname,
             lastname: user.lastname,
             email: user.email,
-            role: user.role,
+            roleId: user.roleId,
+            adminAccess: role.adminAccess,
+            portalAccess: role.portalAccess,
+            appAccess: role.appAccess,
             sessionId: uuidv4()
         }
         const token = jwt.sign(tokenBody, SECRET_KEY, { expiresIn: '1h', issuer: TOKEN_ISSUER });

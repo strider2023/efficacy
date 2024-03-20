@@ -1,10 +1,9 @@
 import { ApiError } from "../errors";
-import { MetadataProperty } from "../entities";
 import { BaseUIBuilder } from "./base-ui-builder.abstract";
 
 export class WebUIBuilder extends BaseUIBuilder {
 
-    public async getUIConfig(properties: MetadataProperty[]): Promise<any> {
+    public async getUIConfig(properties: any[]): Promise<any> {
         let jsonSchema = { type: "object", required: [], properties: {} };
         let uiSchema = {};
         try {

@@ -1,4 +1,3 @@
-import { AppDataSource } from "./data-source"
 import * as express from "express";
 import * as dotenv from "dotenv";
 import { Request, Response } from "express";
@@ -8,16 +7,17 @@ import { RegisterRoutes } from "../build/routes";
 import * as morgan from "morgan";
 import helmet from "helmet";
 import * as cors from "cors";
-import { bootstrapEfficacy } from "./config/bootstrap-config";
 import { rateLimiterConfig } from "./config/rate-limiter-config";
 import { errorHandlerMiddleware } from "./config/error-config";
 import { RedisClient } from "./config/redis-config";
-import * as path from "path";
+import { postgraphile } from "postgraphile";
+import { migrate } from "./database/migrations";
+import { seed } from "./database/seeds";
 
 dotenv.config();
 
-const { PORT = 3000 } = process.env;
-let server = null;
+const { PORT = 3000, DATABASE_URL, DB_SCHEMA } = process.env;
+let server = null
 const app = express();
 app.use(express.json({ limit: '5MB' }));
 app.use(morgan("tiny"));
@@ -25,6 +25,18 @@ app.use(cors());
 app.use(helmet());
 app.use(rateLimiterConfig);
 app.use(express.static('public'));
+
+app.use(
+    postgraphile(
+        DATABASE_URL,
+        DB_SCHEMA,
+        {
+            watchPg: true,
+            graphiql: true,
+            enhanceGraphiql: true,
+        }
+    )
+);
 
 app.use("/api-docs",
     swaggerUi.serve,
@@ -49,30 +61,33 @@ app.use((_req, res: Response) => {
 
 app.use(errorHandlerMiddleware);
 
-AppDataSource.initialize().then(async () => {
-    RedisClient.getInstance().connect();
-    server = app.listen(PORT, () => {
-        console.log("Server is running on http://localhost:" + PORT);
+try {
+    const server = app.listen(PORT, () => {
+        console.log("Server is running on port: " + PORT);
+        RedisClient.getInstance().connect();
+        migrate().then(() => {
+            seed();
+        });
     });
-    console.log("Data Source has been initialized!");
-    bootstrapEfficacy();
-}).catch(error => console.log(error))
+} catch (e) {
+    console.error(e)
+}
 
 process.on('SIGTERM', shutDown);
 process.on('SIGINT', shutDown);
 
 function shutDown() {
-    console.log('Received kill signal, shutting down gracefully');
-    RedisClient.getInstance().disconnect();
-    server.close(() => {
-        console.log('Closed out remaining connections');
-        process.exit(0);
-    });
+    if (server) {
+        console.log('Received kill signal, shutting down gracefully');
+        RedisClient.getInstance().disconnect();
+        server.close(() => {
+            console.log('Closed out remaining connections');
+            process.exit(0);
+        });
 
-    setTimeout(() => {
-        console.error('Could not close connections in time, forcefully shutting down');
-        process.exit(1);
-    }, 10000);
-
-    AppDataSource.destroy();
+        setTimeout(() => {
+            console.error('Could not close connections in time, forcefully shutting down');
+            process.exit(1);
+        }, 10000);
+    }
 }

@@ -1,20 +1,31 @@
 export interface CreateUser {
-    firstname: string;
-    middlename?: string;
-    lastname: string;
-    phone?: string;
-    email: string;
-    password: string;
-    dob?: Date;
-    role: string
+    firstname: string
+    middlename?: string
+    lastname: string
+    phone?: string
+    email: string
+    password: string
+    roleId: string
+    dob?: Date
+    image?: string
+    location?: string
+    description?: string
+    tags?: string[]
+    additionalMetadata?: Record<string, any>
 }
 
 export interface UpdateUser {
-    firstname: string;
-    middlename?: string;
-    lastname: string;
-    phone?: string;
-    dob?: Date;
+    firstname: string
+    middlename?: string
+    lastname: string
+    phone?: string
+    roleId: string
+    dob?: Date
+    image?: string
+    location?: string
+    description?: string
+    tags?: string[]
+    additionalMetadata?: Record<string, any>
 }
 
 export interface UpdatePassword {
@@ -22,7 +33,7 @@ export interface UpdatePassword {
     newPassword: string;
 }
 
-export interface IUserSession {
+export interface UserSession {
     sessionId: string;
     token: string;
     expiry: Date;

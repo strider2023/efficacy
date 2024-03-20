@@ -1,5 +1,3 @@
-import { MetadataProperty } from "../entities";
-
 export abstract class BaseUIBuilder {
-    public abstract getUIConfig(properties: MetadataProperty[]): any;
+    public abstract getUIConfig(properties: any[]): any;
 }

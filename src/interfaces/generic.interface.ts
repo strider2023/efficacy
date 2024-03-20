@@ -1,4 +1,4 @@
-import { CollectionItemFilterOperations } from "../enums";
+import { FilterOperations } from "../enums";
 
 export interface AppResponse {
     status: number;
@@ -14,7 +14,7 @@ export interface AppQueryParams {
     showCount?: boolean;
     filterByProperty?: string;
     filterValue?: string;
-    filterOperation?: CollectionItemFilterOperations
+    filterOperation?: FilterOperations
 }
 
 export interface AppGetAll {

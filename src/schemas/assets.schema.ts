@@ -9,4 +9,5 @@ export interface Assets extends BaseSchema {
     description?: string;
     tags?: string[];
     filesize: number;
+    additionalMetadata?: Record<string, any>
 }

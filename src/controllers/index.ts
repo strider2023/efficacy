@@ -1,5 +1,5 @@
 export * from './assets-manager.controller';
 export * from './collection.controller';
-export * from './collection-item.controller';
-export * from './access-group.controller';
+export * from './item.controller';
+export * from './roles.controller';
 export * from './user.controller';

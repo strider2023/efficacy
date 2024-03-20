@@ -8,7 +8,7 @@ import * as bcrypt from 'bcrypt'
 export class UserController extends Controller {
 
     @Get()
-    @Security("jwt", ["admin"])
+    @Security("jwt")
     public async getUsers(
         @Queries() queryParams: AppQueryParams
     ): Promise<AppGetAll> {
@@ -17,7 +17,7 @@ export class UserController extends Controller {
 
     @SuccessResponse("201", "Created") 
     @Post()
-    @Security("jwt", ["admin"])
+    @Security("jwt")
     public async create(
         @Body() user: CreateUser
     ): Promise<void> {
@@ -52,7 +52,7 @@ export class UserController extends Controller {
 
     @SuccessResponse("200", "Updated") 
     @Delete()
-    @Security("jwt", ["admin"])
+    @Security("jwt")
     public async delete(
         @Request() request: any
     ): Promise<void> {

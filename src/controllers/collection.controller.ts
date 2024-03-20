@@ -1,16 +1,15 @@
 
-import { Body, Controller, Example, Get, Path, Post, Queries, Route, Security, Tags, SuccessResponse, Delete, Put } from "tsoa";
-import { Collection } from "../entities";
+import { Body, Controller, Get, Path, Post, Queries, Route, Security, Tags, SuccessResponse, Delete, Put } from "tsoa";
 import { CollectionService } from "../services";
-import { ICollection, AppQueryParams } from "../interfaces";
-import { MetadataProperty } from "../entities";
+import { CreateCollection, AppQueryParams, UpdateCollection, AppGetAll } from "../interfaces";
+import { Collections } from "../schemas";
 
 @Route("api/collection")
 @Tags("Efficacy Collection APIs")
 export class CollectionController extends Controller {
 
     @Get("sync")
-    @Security("jwt", ["admin"])
+    @Security("jwt")
     public async syncCollections(
     ): Promise<string> {
         try {
@@ -22,89 +21,26 @@ export class CollectionController extends Controller {
     }
 
     @Get()
-    @Security("jwt", ["admin", "portal_user"])
+    @Security("jwt")
     public async getCollections(
         @Queries() queryParams: AppQueryParams
-    ): Promise<Collection[]> {
-        return new CollectionService().getAllCollections(queryParams);
+    ): Promise<AppGetAll> {
+        return new CollectionService().getAll(queryParams);
     }
 
     @Get("{collectionId}")
-    @Security("jwt", ["admin", "portal_user"])
-    public async getCollection(
+    @Security("jwt")
+    public async get(
         @Path() collectionId: string
-    ): Promise<Collection> {
-        return new CollectionService().getCollectionById(collectionId);
-    }
-
-    @Get("{collectionId}/properties")
-    @Security("jwt", ["admin", "portal_user"])
-    public async getCollectionProperties(
-        @Path() collectionId: string
-    ): Promise<MetadataProperty[]> {
-        return new CollectionService().getCollectionProperties(collectionId);
-    }
-
-    @Get("{collectionId}/page-config/{adapter}")
-    public async getCollectionPageConfig(
-        @Path() collectionId: string,
-        @Path() adapter: string
-    ): Promise<any> {
-        return new CollectionService().getCollectionPageConfig(collectionId, adapter);
+    ): Promise<Collections> {
+        return new CollectionService().get(collectionId, 'collectionId');
     }
 
     @SuccessResponse("201", "Created")
-    @Example<ICollection>({
-        "collectionId": "user",
-        "displayName": "User",
-        "tableName": "user",
-        "properties": [
-            {
-                "propertyName": "firstname",
-                "displayName": "First Name",
-                "type": "string",
-                "required": true,
-                "viewProperty": {
-                    "widget": "text"
-                }
-            },
-            {
-                "propertyName": "lastname",
-                "displayName": "Last Name",
-                "type": "string",
-                "required": true,
-                "viewProperty": {
-                    "widget": "text"
-                }
-            },
-            {
-                "propertyName": "gender",
-                "displayName": "Gender",
-                "type": "string",
-                "required": false,
-                "isEnum": true,
-                "enumValues": [
-                    "Male",
-                    "Female",
-                    "Neutral"
-                ]
-            },
-            {
-                "propertyName": "email",
-                "displayName": "Email",
-                "type": "string",
-                "required": true,
-                "viewProperty": {
-                    "widget": "text",
-                    "inputType": "email"
-                }
-            }
-        ]
-    })
     @Post()
-    @Security("jwt", ["admin", "portal_user"])
+    @Security("jwt")
     public async createCollection(
-        @Body() request: ICollection)
+        @Body() request: CreateCollection)
         : Promise<void> {
         this.setStatus(201)
         await new CollectionService().create(request);
@@ -113,22 +49,22 @@ export class CollectionController extends Controller {
 
     @SuccessResponse("200", "Updated")
     @Put("{collectionId}")
-    @Security("jwt", ["admin", "portal_user"])
+    @Security("jwt")
     public async update(
         @Path() collectionId: string,
-        @Body() request: ICollection
+        @Body() request: UpdateCollection
     ): Promise<void> {
-        await new CollectionService().update(collectionId, request);
+        await new CollectionService().update(request, collectionId, 'collectionId');
         return;
     }
 
     @SuccessResponse("200", "Updated")
     @Delete("{collectionId}")
-    @Security("jwt", ["admin", "portal_user"])
+    @Security("jwt")
     public async delete(
         @Path() collectionId: string,
     ): Promise<void> {
-        await new CollectionService().delete(collectionId);
+        await new CollectionService().delete(collectionId, 'collectionId');
         return;
     }
 }

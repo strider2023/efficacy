@@ -1,12 +1,12 @@
-import { CollectionItemFilterOperations } from "../enums";
+import { FilterOperations } from "../enums";
 
-export interface ICollectionItems {
+export interface CollectionItems {
     count?: number;
-    attributes?: ICollectionAttributes[];
+    attributes?: CollectionAttributes[];
     result: any[];
 }
 
-export interface ICollectionItemsQuery {
+export interface CollectionItemsQuery {
     properties?: string[];
     showAttributes?: boolean;
     limit?: number;
@@ -16,16 +16,16 @@ export interface ICollectionItemsQuery {
     showCount?: boolean;
     filterByProperty?: string;
     filterValue?: string;
-    filterOperation?: CollectionItemFilterOperations
+    filterOperation?: FilterOperations
 }
 
-export interface ICollectionAttributes {
+export interface CollectionAttributes {
     propertyName: string
     displayName: string
     type: string
 }
 
-export interface ICollectionFilterAttributes {
+export interface CollectionFilterAttributes {
     filterByProperty: string
     filterValue: string
     operation: string

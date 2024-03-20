@@ -1,5 +1,0 @@
-export * from './base.entity'
-export * from './collection.entity'
-export * from './metadata-property.entity'
-export * from './metadata-view-property.entity'
-export * from './array-view-property.entity'

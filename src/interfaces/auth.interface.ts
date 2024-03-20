@@ -1,14 +1,18 @@
-export interface IAuthentication {
+export interface Authentication {
     email: string;
     password: string;
     callbackURL?: string
 }
 
-export interface IAuthenticationResponse {
+export interface AuthenticationResponse {
     token: string;
     expiry: Date;
     sessionId: string
     callbackURL?: string
+}
+
+export interface RefershPassword {
+    token: string;
 }
 
 export interface IAuthToken {
@@ -16,7 +20,10 @@ export interface IAuthToken {
     lastname: string
     email: string
     sessionId: string
-    role: string
+    roleId: string
+    adminAccess: boolean
+    portalAccess: boolean
+    appAccess: boolean
     iat: Date
     exp: Date
     iss: string

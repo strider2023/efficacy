@@ -1,4 +1,3 @@
-import { AccessGroup } from "./access-group.schema"
 import { BaseSchema } from "./base.schema"
 
 export interface User extends BaseSchema {
@@ -8,8 +7,11 @@ export interface User extends BaseSchema {
     phone: string
     email: string
     password: string
+    roleId: string
     dob?: Date
     image?: string
-    role?: string
-    accessGroup?: AccessGroup[]
+    location?: string
+    description?: string
+    tags?: string[]
+    additionalMetadata?: Record<string, any>
 }
