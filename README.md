@@ -13,7 +13,7 @@ Note: It is still in early stages of development.
 
 **Client:** React, MUI, React-Jsonschema-Form
 
-**Server:** Node, Express, TypeORM, Knex, Swagger
+**Server:** Node, Express, Knex, Swagger
 
 **Database:** Postgres
 

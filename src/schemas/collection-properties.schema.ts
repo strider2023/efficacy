@@ -12,6 +12,7 @@ export interface CollectionProperty extends BaseSchema {
     regex?: string
     stringOneOf?: string[];
     stringNoneOf?: string[];
+    stringLengthCheckOperator?: string
     stringLengthCheck?: boolean
     setNumberPositive?: boolean
     setNumberNegative?: boolean

@@ -4,6 +4,7 @@ import { getDatabaseAdapter } from "../database/knex-config";
 import { ApiError } from "../errors";
 import { RedisClient } from "../config/redis-config";
 import { RedisClientType } from "redis";
+import { TABLE_ACTIVITY } from "../constants/tables.constants";
 
 export abstract class BaseService<BaseSchema> {
 
@@ -12,7 +13,7 @@ export abstract class BaseService<BaseSchema> {
     readonly schema: BaseSchema;
     readonly cache: RedisClientType;
     readonly db: any;
-    
+
     constructor(tableName: string, entityName: string) {
         this.tableName = tableName;
         this.entityName = entityName;
@@ -25,11 +26,10 @@ export abstract class BaseService<BaseSchema> {
             result: []
         }
         try {
-            const query = await getDatabaseAdapter()
-                .from(this.tableName)
-            // if (status) {
-            //     query.where('status', status)
-            // }
+            const query = this.db.from(this.tableName)
+            if (status) {
+                query.where('status', status)
+            }
             if (queryParams.properties) {
                 query.select(queryParams.properties);
             }
@@ -61,8 +61,7 @@ export abstract class BaseService<BaseSchema> {
 
     public async get(value: any, key: string = 'id'): Promise<BaseSchema> {
         try {
-            const response = await getDatabaseAdapter()
-                .from(this.tableName)
+            const response = await this.db.from(this.tableName)
                 .where(key, value)
                 .where('status', Status.ACTIVE)
                 .first();
@@ -72,11 +71,11 @@ export abstract class BaseService<BaseSchema> {
         }
     };
 
-    public async create(request: Record<string, any>) {
+    public async create(request: Record<string, any>): Promise<string> {
         try {
-            await getDatabaseAdapter()
-                .into(this.tableName)
-                .insert(request);
+            return await this.db.into(this.tableName)
+                .insert(request)
+                .returning('id');
         } catch (e) {
             throw new ApiError(`Error creating entry for ${this.entityName}`, 500, e.message);
         }
@@ -84,8 +83,7 @@ export abstract class BaseService<BaseSchema> {
 
     public async update(request: Record<string, any>, value: any, key: string = 'id') {
         try {
-            await getDatabaseAdapter()
-                .into(this.tableName)
+            await this.db.into(this.tableName)
                 .where(key, value)
                 .update(request);
         } catch (e) {
@@ -95,12 +93,20 @@ export abstract class BaseService<BaseSchema> {
 
     public async delete(value: string, key: string = 'id') {
         try {
-            await getDatabaseAdapter()
-                .into(this.tableName)
+            await this.db.into(this.tableName)
                 .where(key, value)
                 .update({ status: Status.DELETED });
         } catch (e) {
             throw new ApiError(`Error removing from ${this.entityName}`, 500, e.message);
         }
     };
+
+    private async createActivityEntry(action: string, id: string) {
+        await this.db.into(TABLE_ACTIVITY)
+            .insert({
+                action: action,
+                tableName: this.tableName,
+                objectId: id
+            });
+    }
 }

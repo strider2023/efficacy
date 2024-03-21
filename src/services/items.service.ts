@@ -5,8 +5,8 @@ import {
 } from "../interfaces";
 import { ApiError } from "../errors";
 import { getDatabaseAdapter } from "../database/knex-config";
-import { TABLE_COLLECTIONS } from "../constants/tables.constants";
-import { Collections } from "../schemas";
+import { TABLE_COLLECTIONS, TABLE_COLLECTION_PROPERTIES } from "../constants/tables.constants";
+import { CollectionProperty, Collections } from "../schemas";
 
 export class ItemsService {
 
@@ -19,8 +19,8 @@ export class ItemsService {
             // TODO: Validate Request
             try {
                 await this.insertData(
-                        `${collection.schemaName}.${collection.tableName}`,
-                        request);
+                    `${collection.schemaName}.${collection.tableName}`,
+                    request);
             } catch (e) {
                 throw new ApiError("Update Collection Item", 500, e.message);
             }
@@ -93,6 +93,14 @@ export class ItemsService {
             return response;
         }
         return response;
+    }
+
+    public async getCollectionProperties(collectionId: string): Promise<CollectionProperty[]> {
+        return await getDatabaseAdapter()
+            .from(TABLE_COLLECTION_PROPERTIES)
+            .select(['id', 'propertyName', 'displayName', 'description', 'type'])
+            .where('collectionId', collectionId)
+            .where('status', Status.ACTIVE);
     }
 
     ////////////////////// Private Functions //////////////////////////

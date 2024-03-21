@@ -40,7 +40,7 @@ export class CollectionService extends BaseService<Collections> {
         try {
             // Get latest version
             const collection = await this.get(collectionId);
-            const updatedCollection = {
+            let updatedCollection = {
                 collectionId: collectionId,
                 displayName: request.displayName || collection.displayName,
                 description: request.description || collection.description,

@@ -13,9 +13,9 @@ export class ItemController extends Controller {
         @Queries() query: CollectionItemsQuery
     ): Promise<CollectionItems> {
         const response: CollectionItems = await new ItemsService().getAll(collectionId, query);
-        // if (query.showAttributes) {
-        //     response.attributes = await new ItemsService().getCollectionProperties(collectionId);
-        // }
+        if (query.showAttributes) {
+            response.attributes = await new ItemsService().getCollectionProperties(collectionId);
+        }
         return response;
     }
 

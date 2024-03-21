@@ -1,8 +1,9 @@
+import { CollectionProperty } from "../schemas";
 import { ApiError } from "../errors";
 import { WebUIBuilder } from "./web-ui-builder";
 
 export class UIBuilder {
-    static async getConfig(adatper: string, props: any[]): Promise<any> {
+    static async getConfig(adatper: string, props: CollectionProperty[]): Promise<any> {
         if (adatper === 'web') {
             return new WebUIBuilder().getUIConfig(props);
         } else {

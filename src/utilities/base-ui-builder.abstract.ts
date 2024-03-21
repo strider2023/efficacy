@@ -1,3 +1,5 @@
+import { CollectionProperty } from "../schemas";
+
 export abstract class BaseUIBuilder {
-    public abstract getUIConfig(properties: any[]): any;
+    public abstract getUIConfig(properties: CollectionProperty[]): any;
 }
