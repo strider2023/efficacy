@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv';
 import * as bcrypt from 'bcrypt'
-import { getDatabaseAdapter } from './knex-config';
-import { Status } from '../enums';
+import { ActivityTypes } from '../enums';
 import { TABLE_ROLES, TABLE_USERS } from '../constants/tables.constants';
+import { ActivityService, RolesService, UserService } from '../services';
 
 dotenv.config();
 
@@ -11,38 +11,30 @@ const { ADMIN_EMAIL, ADMIN_PASSWORD } =
 
 export async function seed() {
     //Create default application roles
-    let admin = await getDatabaseAdapter()
-        .from(TABLE_ROLES)
-        .where('roleId', 'efficacy_admin')
-        .where('status', Status.ACTIVE)
-        .first();
+    let admin = await new RolesService(null).get('efficacy_admin', 'roleId');
+    let roleId = null;
     if (!admin) {
-        await getDatabaseAdapter()
-            .into(TABLE_ROLES)
-            .insert({
-                roleId: 'efficacy_admin',
-                displayName: 'Efficacy Admin',
-                description: 'Do not delete!!!',
-                adminAccess: true,
-                portalAccess: true,
-                appAccess: true
-            });
-        admin = await getDatabaseAdapter()
-            .from(TABLE_ROLES)
-            .where('roleId', 'efficacy_admin')
-            .where('status', Status.ACTIVE)
-            .first();
+        roleId = await new RolesService(null).create({
+            roleId: 'efficacy_admin',
+            displayName: 'Efficacy Admin',
+            description: 'Do not delete!!!',
+            adminAccess: true,
+            portalAccess: true,
+            appAccess: true
+        });
+        await new ActivityService().create({
+            action: ActivityTypes.CREATE,
+            tableName: TABLE_ROLES,
+            objectId: roleId.id,
+            isSystem: true
+        });
     } else {
         console.info("Default admin role exists");
     }
 
     // Create default user
     if (ADMIN_EMAIL && ADMIN_PASSWORD) {
-        const user = await getDatabaseAdapter()
-            .from(TABLE_USERS)
-            .where('email', ADMIN_EMAIL)
-            .where('status', Status.ACTIVE)
-            .first();
+        const user = await new UserService().get(ADMIN_EMAIL, 'email');
         if (!user) {
             const salt = bcrypt.genSaltSync(10);
             const request = {
@@ -50,11 +42,15 @@ export async function seed() {
                 lastname: 'Admin',
                 email: ADMIN_EMAIL,
                 password: bcrypt.hashSync(ADMIN_PASSWORD, salt),
-                roleId: admin.id
+                roleId: roleId.id
             }
-            await getDatabaseAdapter()
-                .into(TABLE_USERS)
-                .insert(request);
+            const user = await new UserService().create(request);
+            await new ActivityService().create({
+                action: ActivityTypes.CREATE,
+                tableName: TABLE_USERS,
+                objectId: user.id,
+                isSystem: true
+            });
         } else {
             console.info("Default admin exists");
         }

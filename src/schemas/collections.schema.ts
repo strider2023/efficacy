@@ -6,8 +6,8 @@ export interface Collections extends BaseSchema {
     description?: string
     schemaName: string
     tableName: string
-    version: number
-    isLatest: boolean
     permissions?: string[]
+    isPublic?: boolean
     useTimestamps?: boolean
+    additionalMetadata?: Record<string, any>
 }

@@ -6,7 +6,7 @@ export interface CollectionProperty extends BaseSchema {
     displayName: string
     description?: string
     type: string
-    isRequired: boolean
+    nullable: boolean
     isUnique?: boolean
     default?: string
     regex?: string
@@ -26,7 +26,5 @@ export interface CollectionProperty extends BaseSchema {
     foreignKeyColumn?: string
     foreignKeySchema?: string
     foreignKeyTable?: string
-    version: number;
-    isLatest: boolean;
     additionalMetadata?: Record<string, any>
 }

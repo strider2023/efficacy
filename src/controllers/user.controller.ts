@@ -2,6 +2,7 @@ import { Post, Route, Tags, Get, Put, Delete, Body, Queries, Patch, Request, Sec
 import { UserService } from "../services";
 import { AppGetAll, AppQueryParams, UpdatePassword, CreateUser, UpdateUser } from "../interfaces";
 import * as bcrypt from 'bcrypt'
+import { ApiError } from "../errors";
 
 @Route("api/user")
 @Tags("Efficacy User APIs")
@@ -35,7 +36,14 @@ export class UserController extends Controller {
         @Request() request: any,
         @Body() updateUser: UpdateUser
     ): Promise<void> {
-        await new UserService().update(updateUser, request.user.email, 'email');
+        if (request.user.adminAccess && updateUser.email) {
+            await new UserService().update(updateUser, updateUser.email, 'email');
+        } else if (request.user.email == updateUser.email) {
+            await new UserService().update(updateUser, request.user.email, 'email');
+        } else {
+            throw new ApiError("Invalid Request", 500, "You cannot perform this action.");
+        }
+        console.log(request.user.adminAccess, updateUser.email)
         return;
     }
 

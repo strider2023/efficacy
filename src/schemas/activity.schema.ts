@@ -4,6 +4,7 @@ export interface Activity extends BaseSchema {
     action: string;
     tableName: string;
     objectId: string;
+    changes?: JSON;
     userId?: string;
     isSystem?: boolean;
     ip?: string;

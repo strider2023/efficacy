@@ -1,4 +1,3 @@
-export * from './validator';
 export * from './schema-builder';
 export * from './web-ui-builder';
 export * from './base-ui-builder.abstract';

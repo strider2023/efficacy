@@ -1,7 +1,6 @@
 import { Post, Route, Tags, Body, Patch, Security, Request, Controller, SuccessResponse } from "tsoa";
 import { UserService } from "../services";
-import { Authentication, AuthenticationResponse, CreateUser, RefershPassword } from "../interfaces";
-import express from "express";
+import { Authentication, AuthenticationResponse, CreateUser, RefershToken } from "../interfaces";
 
 @Route("api/auth")
 @Tags("Efficacy Authentication APIs")
@@ -23,7 +22,7 @@ export class AuthenticationController extends Controller {
 
     @Post("/refresh")
     public async refreshToken(
-        @Body() exReq: RefershPassword,
+        @Body() exReq: RefershToken,
         @Request() request: any,
     ): Promise<AuthenticationResponse> {
         return new UserService().refreshToken(request.user, exReq.token);
@@ -33,10 +32,10 @@ export class AuthenticationController extends Controller {
     @Patch("/logout")
     @Security("jwt")
     public async logout(
-        @Request() request: express.Request,
+        @Request() request: any,
     ): Promise<void> {
         const token = request.headers['authorization'];
-        new UserService().logout(token);
+        new UserService().logout(token, request.user.email);
         return;
     }
 }

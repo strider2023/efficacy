@@ -9,7 +9,7 @@ export class WebUIBuilder extends BaseUIBuilder {
         let uiSchema = null;
         try {
             for (const p of properties) {
-                if (p.isRequired) {
+                if (!p.nullable) {
                     jsonSchema.required.push(p.propertyName)
                 }
                 let jsonSchemaObj = {

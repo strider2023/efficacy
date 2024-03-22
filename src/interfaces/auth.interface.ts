@@ -1,7 +1,20 @@
+import { JSONSchemaType } from "ajv";
+
 export interface Authentication {
     email: string;
     password: string;
     callbackURL?: string
+}
+
+export const AuthenticationSchema = {
+    type: "object",
+    properties: {
+        email: { type: "email" },
+        password: { type: "string" },
+        callbackURL: { type: "string", nullable: true },
+    },
+    required: ["email", "password"],
+    additionalProperties: false
 }
 
 export interface AuthenticationResponse {
@@ -11,7 +24,7 @@ export interface AuthenticationResponse {
     callbackURL?: string
 }
 
-export interface RefershPassword {
+export interface RefershToken {
     token: string;
 }
 

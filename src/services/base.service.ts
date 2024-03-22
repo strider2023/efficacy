@@ -1,10 +1,11 @@
 import { AppGetAll, AppQueryParams } from "../interfaces";
-import { FilterOperations, Status } from "../enums";
+import { ActivityTypes, FilterOperations, Status } from "../enums";
 import { getDatabaseAdapter } from "../database/knex-config";
 import { ApiError } from "../errors";
 import { RedisClient } from "../config/redis-config";
 import { RedisClientType } from "redis";
 import { TABLE_ACTIVITY } from "../constants/tables.constants";
+import * as _ from "lodash";
 
 export abstract class BaseService<BaseSchema> {
 
@@ -13,12 +14,14 @@ export abstract class BaseService<BaseSchema> {
     readonly schema: BaseSchema;
     readonly cache: RedisClientType;
     readonly db: any;
+    readonly userEmail!: string;
 
-    constructor(tableName: string, entityName: string) {
+    constructor(tableName: string, entityName: string, email?: string) {
         this.tableName = tableName;
         this.entityName = entityName;
         this.cache = RedisClient.getInstance().getClient();
         this.db = getDatabaseAdapter();
+        this.userEmail = email;
     }
 
     public async getAll(queryParams: AppQueryParams, status?: Status): Promise<AppGetAll> {
@@ -59,23 +62,27 @@ export abstract class BaseService<BaseSchema> {
         }
     }
 
-    public async get(value: any, key: string = 'id'): Promise<BaseSchema> {
+    public async get(value: any, key: string = 'id', status: Status = Status.ACTIVE): Promise<BaseSchema> {
         try {
-            const response = await this.db.from(this.tableName)
+            const resp = await this.db.from(this.tableName)
                 .where(key, value)
-                .where('status', Status.ACTIVE)
+                .where('status', status)
                 .first();
-            return response;
+            return _.omit(resp, ['createdAt', 'updatedAt']);
         } catch (e) {
             throw new ApiError(`Error fetching entry from ${this.entityName}`, 500, e.message);
         }
     };
 
-    public async create(request: Record<string, any>): Promise<string> {
+    public async create(request: Record<string, any>, keys: string[] = ['id']): Promise<any> {
         try {
-            return await this.db.into(this.tableName)
-                .insert(request)
-                .returning('id');
+            const resp = await this.db.into(this.tableName)
+                .returning(keys)
+                .insert(request);
+            // Capture activity changes
+            this.createActivityEntry(ActivityTypes.CREATE, resp[0][keys[0]]);
+            console.log(resp[0]);
+            return resp[0];
         } catch (e) {
             throw new ApiError(`Error creating entry for ${this.entityName}`, 500, e.message);
         }
@@ -83,9 +90,22 @@ export abstract class BaseService<BaseSchema> {
 
     public async update(request: Record<string, any>, value: any, key: string = 'id') {
         try {
-            await this.db.into(this.tableName)
-                .where(key, value)
-                .update(request);
+            let existingValue = await this.get(value, key);
+            let updateValue = _.merge({}, existingValue, request);
+            // console.log(existingValue, updateValue);
+            // Get changes
+            const difference = _.pickBy(updateValue, (v, k) => !_.isEqual(existingValue[k], v));
+            // Update table
+            if (!_.isEmpty(difference)) {
+                const resp = await this.db.into(this.tableName)
+                    .returning(['id'])
+                    .where(key, value)
+                    .update(request);
+                // Capture activity changes
+                this.createActivityEntry(ActivityTypes.UPDATE, resp[0]['id'], difference);
+            } else {
+                console.info("No change detected.");
+            }
         } catch (e) {
             throw new ApiError(`Error updating entry for ${this.entityName}`, 500, e.message);
         }
@@ -93,20 +113,31 @@ export abstract class BaseService<BaseSchema> {
 
     public async delete(value: string, key: string = 'id') {
         try {
-            await this.db.into(this.tableName)
+            const resp = await this.db.into(this.tableName)
+                .returning(['id'])
                 .where(key, value)
                 .update({ status: Status.DELETED });
+            // Capture activity changes
+            this.createActivityEntry(ActivityTypes.DELETE, resp[0]['id']);
         } catch (e) {
             throw new ApiError(`Error removing from ${this.entityName}`, 500, e.message);
         }
     };
 
-    private async createActivityEntry(action: string, id: string) {
+    protected async createActivityEntry(
+        action: ActivityTypes,
+        id: string,
+        changes?: Record<string, any>,
+        tableName?: string,
+        isSystem?: boolean) {
         await this.db.into(TABLE_ACTIVITY)
             .insert({
                 action: action,
-                tableName: this.tableName,
-                objectId: id
+                tableName: tableName || this.tableName,
+                objectId: id,
+                changes: changes,
+                isSystem: isSystem,
+                userId: this.userEmail
             });
     }
 }

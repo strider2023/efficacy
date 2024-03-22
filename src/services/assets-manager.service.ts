@@ -5,13 +5,13 @@ import { Assets } from "../schemas";
 
 export class AssetsManagerService extends BaseService<Assets>{
 
-    constructor() {
-        super(TABLE_ASSETS, 'Assets')
+    constructor(email: string) {
+        super(TABLE_ASSETS, 'Assets', email)
     }
 
     public async uploadFile(file: Express.Multer.File,
         description?: string,
-        tags?: string[]) {
+        tags?: string[]): Promise<any>{
         try {
             const request = {
                 assetId: file.filename,
@@ -23,8 +23,9 @@ export class AssetsManagerService extends BaseService<Assets>{
                 description: description,
                 tags: tags
             }
-            await this.db
+            return await this.db
                 .into(this.tableName)
+                .returning('assetId')
                 .insert(request);
         } catch (e) {
             throw new ApiError(`Error creating entry for ${this.entityName}`, 500, e.message);

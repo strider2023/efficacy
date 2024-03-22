@@ -1,7 +1,9 @@
-import { CreateCollection, CreateCollectionProperty } from "../interfaces";
+import { CreateCollection, CreateCollectionProperty, UpdateCollectionProperty } from "../interfaces";
 import { getDatabaseAdapter } from "../database/knex-config";
 import { ApiError } from "../errors";
 import { PropertyTypes } from "../enums";
+import { CollectionProperty } from "../schemas";
+import * as _ from "lodash";
 
 //https://devhints.io/knex
 export class SchemaBuilder {
@@ -62,7 +64,10 @@ export class SchemaBuilder {
         }
     }
 
-    public async addTableProperty(schemaName: string, tableName: string, props: CreateCollectionProperty) {
+    public async addTableProperty(
+        schemaName: string,
+        tableName: string,
+        props: CreateCollectionProperty) {
         try {
             const exists = await getDatabaseAdapter().schema.withSchema(schemaName).hasTable(tableName);
             if (exists) {
@@ -78,12 +83,15 @@ export class SchemaBuilder {
         }
     }
 
-    public async updateTableProperty(schemaName: string, tableName: string, props: CreateCollectionProperty) {
+    public async updateTableProperty(
+        schemaName: string,
+        tableName: string,
+        original: CollectionProperty) {
         try {
             getDatabaseAdapter().schema.withSchema(schemaName).hasTable(tableName).then((exists) => {
                 if (exists) {
-                    getDatabaseAdapter().schema.withSchema(schemaName).table(tableName, (t) => {
-                        this.addTableColumn(t, props);
+                    getDatabaseAdapter().schema.withSchema(schemaName).alterTable(tableName, (t) => {
+                        this.addTableColumn(t, original).alter();
                     });
                 } else {
                     throw new ApiError("Create Collection Property Error", 500, `Table ${tableName} does not exists.`);
@@ -109,70 +117,20 @@ export class SchemaBuilder {
         }
     }
 
-    private addTableColumn(t: any, property: CreateCollectionProperty) {
-        let tableProp;
-        switch (property.type) {
-            case PropertyTypes.STRING:
-                tableProp = t.string(property.propertyName, property.maximum || 255);
-                break;
-            case PropertyTypes.TEXT:
-                tableProp = t.string(property.propertyName, property.maximum || 255);
-                break;
-            case PropertyTypes.BOOLEAN:
-                tableProp = t.boolean(property.propertyName);
-                break;
-            case PropertyTypes.INTEGER:
-                tableProp = t.integer(property.propertyName);
-                break;
-            case PropertyTypes.BIG_INTEGER:
-                tableProp = t.bigInteger(property.propertyName);
-                break;
-            case PropertyTypes.FLOAT:
-                tableProp = t.float(property.propertyName, property.numericPrecision || 8, property.numericScale || 2);
-                break;
-            case PropertyTypes.DECIMAL:
-                tableProp = t.decimal(property.propertyName, property.numericPrecision || 8, property.numericScale || 2);
-                break;
-            case PropertyTypes.TIMESTAMP:
-                tableProp = t.timestamp(property.propertyName);
-                break;
-            case PropertyTypes.DATE_TIME:
-                tableProp = t.dateTime(property.propertyName);
-                break;
-            case PropertyTypes.DATE:
-                tableProp = t.date(property.propertyName);
-                break;
-            case PropertyTypes.TIME:
-                tableProp = t.time(property.propertyName);
-                break;
-            case PropertyTypes.JSON:
-                tableProp = t.json(property.propertyName);
-                break;
-            case PropertyTypes.OBJECT:
-                tableProp = t
-                    .uuid(property.propertyName)
-                    .foreign(`${property.foreignKeyColumn}_id`)
-                    .references("id")
-                    .inTable(`${property.foreignKeySchema}.${property.foreignKeyTable}`);
-                break;
-            case PropertyTypes.ARRAY:
-                tableProp = t
-                    .uuid(property.propertyName)
-                    .foreign(`${property.foreignKeyColumn}_id`)
-                    .references("id")
-                    .inTable(`${property.foreignKeySchema}.${property.foreignKeyTable}`);
-                break;
-            case PropertyTypes.ASSETS:
-                tableProp = t.string(property.propertyName);
-                break;
-            case PropertyTypes.STRING_ENUM:
-                tableProp = t.enu(property.propertyName, property.enumValues);
-                break;
-            case PropertyTypes.HASH:
-                tableProp = t.string(property.propertyName);
-                break;
-        }
-        property.isRequired ? tableProp.notNullable() : tableProp.nullable();
+    private addTableColumn(t: any, property: CreateCollectionProperty | CollectionProperty): any {
+        let tableProp = this.createColumn({
+            table : t, 
+            type: property.type,
+            propertyName: property.propertyName,
+            enumValues: property.enumValues,
+            maximum: property.maximum,
+            numericPrecision: property.numericPrecision,
+            numericScale: property.numericScale,
+            foreignKeyColumn: property.foreignKeyColumn,
+            foreignKeySchema: property.foreignKeySchema,
+            foreignKeyTable: property.foreignKeyTable
+        })
+        property.nullable ? tableProp.notNullable() : tableProp.nullable();
         if (property.isUnique) {
             tableProp.unique();
         }
@@ -197,5 +155,64 @@ export class SchemaBuilder {
         if (property.checkNumberRange && property.minimum && property.maximum) {
             tableProp.checkBetween([property.minimum, property.maximum]);
         }
+        return tableProp;
     }
+
+    private createColumn(prop: CreateTable): any {
+        switch (prop.type) {
+            case PropertyTypes.STRING:
+                return prop.table.string(prop.propertyName, prop.maximum || 255);
+            case PropertyTypes.TEXT:
+                return prop.table.string(prop.propertyName, prop.maximum || 255);
+            case PropertyTypes.BOOLEAN:
+                return prop.table.boolean(prop.propertyName);
+            case PropertyTypes.INTEGER:
+                return prop.table.integer(prop.propertyName);
+            case PropertyTypes.BIG_INTEGER:
+                return prop.table.bigInteger(prop.propertyName);
+            case PropertyTypes.FLOAT:
+                return prop.table.float(prop.propertyName, prop.numericPrecision || 8, prop.numericScale || 2);
+            case PropertyTypes.DECIMAL:
+                return prop.table.decimal(prop.propertyName, prop.numericPrecision || 8, prop.numericScale || 2);
+            case PropertyTypes.TIMESTAMP:
+                return prop.table.timestamp(prop.propertyName);
+            case PropertyTypes.DATE_TIME:
+                return prop.table.dateTime(prop.propertyName);
+            case PropertyTypes.DATE:
+                return prop.table.date(prop.propertyName);
+            case PropertyTypes.TIME:
+                return prop.table.time(prop.propertyName);
+            case PropertyTypes.JSON:
+                return prop.table.json(prop.propertyName);
+            case PropertyTypes.OBJECT:
+                return prop.table.uuid(prop.propertyName)
+                    .foreign(prop.propertyName)
+                    .references(prop.foreignKeyColumn)
+                    .inTable(`${prop.foreignKeySchema}.${prop.foreignKeyTable}`);
+            case PropertyTypes.ARRAY:
+                return prop.table.uuid(prop.propertyName)
+                    .foreign(prop.propertyName)
+                    .references(prop.foreignKeyColumn)
+                    .inTable(`${prop.foreignKeySchema}.${prop.foreignKeyTable}`);
+            case PropertyTypes.ASSETS:
+                return prop.table.string(prop.propertyName);
+            case PropertyTypes.STRING_ENUM:
+                return prop.table.enu(prop.propertyName, prop.enumValues);
+            case PropertyTypes.HASH:
+                return prop.table.string(prop.propertyName);
+        }
+    }
+}
+
+interface CreateTable {
+    table: any,
+    type: string,
+    propertyName: string,
+    enumValues?: string[],
+    maximum?: number,
+    numericPrecision?: number,
+    numericScale?: number
+    foreignKeyColumn?: string,
+    foreignKeySchema?: string,
+    foreignKeyTable?: string
 }

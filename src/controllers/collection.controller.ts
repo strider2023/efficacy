@@ -1,5 +1,5 @@
 
-import { Body, Controller, Get, Path, Post, Queries, Route, Security, Tags, SuccessResponse, Delete, Put } from "tsoa";
+import { Body, Controller, Get, Path, Post, Queries, Route, Security, Tags, SuccessResponse, Delete, Put, Request } from "tsoa";
 import { CollectionService } from "../services";
 import { CreateCollection, AppQueryParams, UpdateCollection, AppGetAll } from "../interfaces";
 import { Collections } from "../schemas";
@@ -12,13 +12,9 @@ export class CollectionController extends Controller {
     @Get("sync")
     @Security("jwt")
     public async syncCollections(
-    ): Promise<string> {
-        try {
-            await new CollectionService().syncCollections();
-        } catch (e) {
-            console.error(e);
-        }
-        return 'Success'
+    ): Promise<void> {
+        await new CollectionService(null).syncCollections();
+        return;
     }
 
     @Get()
@@ -26,7 +22,7 @@ export class CollectionController extends Controller {
     public async getCollections(
         @Queries() queryParams: AppQueryParams
     ): Promise<AppGetAll> {
-        return new CollectionService().getAll(queryParams, Status.ACTIVE);
+        return new CollectionService(null).getAll(queryParams, Status.ACTIVE);
     }
 
     @Get("{collectionId}")
@@ -34,25 +30,18 @@ export class CollectionController extends Controller {
     public async get(
         @Path() collectionId: string
     ): Promise<Collections> {
-        return new CollectionService().get(collectionId);
-    }
-
-    @Get("{collectionId}/revisions")
-    @Security("jwt")
-    public async getHistory(
-        @Path() collectionId: string
-    ): Promise<Collections[]> {
-        return new CollectionService().getHistory(collectionId);
+        return new CollectionService(null).get(collectionId);
     }
 
     @SuccessResponse("201", "Created")
     @Post()
     @Security("jwt")
     public async createCollection(
-        @Body() request: CreateCollection)
-        : Promise<void> {
+        @Request() req: any,
+        @Body() request: CreateCollection
+        ): Promise<void> {
         this.setStatus(201)
-        await new CollectionService().createCollection(request);
+        await new CollectionService(req.user.email).createCollection(request);
         return;
     }
 
@@ -60,10 +49,11 @@ export class CollectionController extends Controller {
     @Put("{collectionId}")
     @Security("jwt")
     public async update(
+        @Request() req: any,
         @Path() collectionId: string,
         @Body() request: UpdateCollection
     ): Promise<void> {
-        await new CollectionService().updateCollection(request, collectionId);
+        await new CollectionService(req.user.email).update(request, collectionId, 'collectionId');
         return;
     }
 
@@ -71,9 +61,10 @@ export class CollectionController extends Controller {
     @Delete("{collectionId}")
     @Security("jwt")
     public async delete(
+        @Request() req: any,
         @Path() collectionId: string,
     ): Promise<void> {
-        await new CollectionService().deleteCollection(collectionId);
+        await new CollectionService(req.user.email).deleteCollection(collectionId);
         return;
     }
 }

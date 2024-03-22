@@ -5,6 +5,7 @@ export interface CreateCollection {
     schemaName?: string;
     tableName: string;
     permissions?: string[];
+    isPublic?: boolean;
     useTimestamps?: boolean;
 }
 
@@ -12,4 +13,5 @@ export interface UpdateCollection {
     displayName?: string;
     description?: string;
     permissions?: string[];
+    isPublic?: boolean;
 }

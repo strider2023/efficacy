@@ -16,24 +16,23 @@ export class AssetsManagerController extends Controller {
     public async getFiles(
         @Queries() queryParams: AppQueryParams
     ): Promise<AppGetAll> {
-        return await new AssetsManagerService().getAll(queryParams);
+        return await new AssetsManagerService(null).getAll(queryParams);
     }
 
     @Post("upload")
     @Middlewares(multerMiddleware)
     public async uploadFile(
-        @Request() request: express.Request,
+        @Request() request: any,
         @FormField() path?: string,
         @FormField() description?: string,
         @FormField() tags?: string[],
         // @UploadedFile() file?: Express.Multer.File,
-    ): Promise<void> {
+    ): Promise<any> {
         // console.log(request.file);
-        await new AssetsManagerService().uploadFile(
+        return await new AssetsManagerService(request.user.email).uploadFile(
             request.file,
             description,
             tags);
-        return;
     }
 
     @Get("{assetId}")
@@ -42,7 +41,7 @@ export class AssetsManagerController extends Controller {
         @Path() assetId: string,
     ) {
         try {
-            const assetDetails = await new AssetsManagerService().get(assetId, 'assetId');
+            const assetDetails = await new AssetsManagerService(null).get(assetId, 'assetId');
             const filePath = path.join(__dirname, '../../', assetDetails.destination, assetDetails.assetId);
             request.res.status(200);
             request.res.setHeader('Content-disposition', 'attachment; filename=' + assetDetails.filename);
@@ -63,13 +62,14 @@ export class AssetsManagerController extends Controller {
 
     @Delete("{assetId}")
     public async deleteFile(
+        @Request() request: any,
         @Path() assetId: string,
     ) {
         try {
-            const assetDetails = await new AssetsManagerService().get(assetId, 'assetId');
+            const assetDetails = await new AssetsManagerService(null).get(assetId, 'assetId');
             const filePath = path.join(__dirname, '../../', assetDetails.destination, assetDetails.assetId);
             fs.unlinkSync(filePath);
-            await new AssetsManagerService().delete(assetId, 'assetId');
+            await new AssetsManagerService(request.user.email).delete(assetId, 'assetId');
         } catch (e) {
             throw new ApiError("Download Asset error", 500, e.message);
         }

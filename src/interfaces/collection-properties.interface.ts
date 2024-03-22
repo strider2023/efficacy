@@ -6,7 +6,7 @@ export interface CreateCollectionProperty {
     displayName: string
     description?: string
     type: PropertyTypes
-    isRequired: boolean
+    nullable: boolean
     isUnique?: boolean
     default?: string
     regex?: string
@@ -30,9 +30,10 @@ export interface CreateCollectionProperty {
 }
 
 export interface UpdateCollectionProperty {
+    propertyName?: string
     displayName?: string
     description?: string
-    isRequired?: boolean
+    nullable?: boolean
     default?: string
     regex?: string
     stringOneOf?: string[];

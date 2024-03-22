@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Path, Post, Queries, Route, Security, Tags, SuccessResponse, Delete, Put } from "tsoa";
+import { Body, Controller, Get, Path, Post, Queries, Route, Security, Tags, SuccessResponse, Delete, Put, Request } from "tsoa";
 import { CollectionPropertiesService } from "../services";
 import { AppQueryParams, AppGetAll, CreateCollectionProperty, UpdateCollectionProperty } from "../interfaces";
 import { CollectionProperty } from "../schemas";
@@ -13,7 +13,7 @@ export class CollectionPropertiesController extends Controller {
         @Path() collectionId: string,
         @Queries() queryParams: AppQueryParams
     ): Promise<AppGetAll> {
-        return new CollectionPropertiesService().getAll(queryParams, Status.ACTIVE);
+        return new CollectionPropertiesService(null).getAll(queryParams, Status.ACTIVE);
     }
 
     @Get("{propertyName}")
@@ -21,7 +21,7 @@ export class CollectionPropertiesController extends Controller {
         @Path() collectionId: string,
         @Path() propertyName: string,
     ): Promise<CollectionProperty> {
-        return new CollectionPropertiesService().get(propertyName);
+        return new CollectionPropertiesService(null).get(propertyName);
     }
 
     @Get("{platform}/template")
@@ -29,18 +29,19 @@ export class CollectionPropertiesController extends Controller {
         @Path() collectionId: string,
         @Path() platform: string,
     ): Promise<any> {
-        return new CollectionPropertiesService().getUIProperties(collectionId, platform);
+        return new CollectionPropertiesService(null).getUIProperties(collectionId, platform);
     }
 
     @SuccessResponse("201", "Created")
     @Post("multiple")
     @Security("jwt")
     public async createMultiple(
+        @Request() req: any,
         @Path() collectionId: string,
         @Body() request: CreateCollectionProperty[]
     ): Promise<void> {
         this.setStatus(201)
-        await new CollectionPropertiesService().createProperties(request);
+        await new CollectionPropertiesService(req.user.email).createProperties(request);
         return;
     }
 
@@ -48,11 +49,12 @@ export class CollectionPropertiesController extends Controller {
     @Post()
     @Security("jwt")
     public async create(
+        @Request() req: any,
         @Path() collectionId: string,
         @Body() request: CreateCollectionProperty
     ): Promise<void> {
         this.setStatus(201)
-        await new CollectionPropertiesService().createProperty(request);
+        await new CollectionPropertiesService(req.user.email).createProperty(request);
         return;
     }
 
@@ -61,11 +63,12 @@ export class CollectionPropertiesController extends Controller {
     @Put("{propertyName}")
     @Security("jwt")
     public async update(
+        @Request() req: any,
         @Path() collectionId: string,
         @Path() propertyName: string,
         @Body() request: UpdateCollectionProperty
     ): Promise<void> {
-        await new CollectionPropertiesService().updateProperty(request, propertyName);
+        await new CollectionPropertiesService(req.user.email).updateProperty(collectionId, request, propertyName);
         return;
     }
 
@@ -73,10 +76,11 @@ export class CollectionPropertiesController extends Controller {
     @Delete("{propertyName}")
     @Security("jwt")
     public async delete(
+        @Request() req: any,
         @Path() collectionId: string,
         @Path() propertyName: string,
     ): Promise<void> {
-        await new CollectionPropertiesService().deleteProperty(collectionId, propertyName);
+        await new CollectionPropertiesService(req.user.email).deleteProperty(collectionId, propertyName);
         return;
     }
 }

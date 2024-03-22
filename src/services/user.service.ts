@@ -1,4 +1,4 @@
-import { Status } from "../enums";
+import { ActivityTypes, Status } from "../enums";
 import { CreateUser, IAuthToken, Authentication, AuthenticationResponse, UpdatePassword } from "../interfaces";
 import { ApiError, AuthError } from "../errors";
 import { BaseService } from "./base.service";
@@ -11,7 +11,7 @@ import { TABLE_ROLES, TABLE_USERS } from "../constants/tables.constants";
 
 dotenv.config();
 
-const { SECRET_KEY, TOKEN_ISSUER } =
+const { SECRET_KEY, TOKEN_ISSUER, JWT_EXPIRY } =
     process.env;
 
 export class UserService extends BaseService<User> {
@@ -21,24 +21,25 @@ export class UserService extends BaseService<User> {
     }
 
     public async registerUser(request: CreateUser): Promise<AuthenticationResponse> {
-        let user = await this.db
-            .from(this.tableName)
-            .where('email', request.email)
-            .where('status', Status.ACTIVE)
-            .first();
-        if (user) {
-            throw new AuthError("Permission Error", 403, "User with given email id already exists.")
-        }
         try {
+            let user = await this.db
+                .from(this.tableName)
+                .where('email', request.email)
+                .where('status', Status.ACTIVE)
+                .first();
+            if (user) {
+                throw new AuthError("Permission Error", 403, "User with given email id already exists.")
+            }
             const salt = bcrypt.genSaltSync(10);
             request.password = bcrypt.hashSync(request.password, salt);
             user = await this.db
                 .into(this.tableName)
                 .insert(request);
+            this.createActivityEntry(ActivityTypes.USER_CREATED, request.email);
+            return this.createSession(user);
         } catch (e) {
             throw new AuthError("User Registration Error", 500, e.message);
         }
-        return this.createSession(user);
     }
 
     public async updatePassword(token: IAuthToken, request: UpdatePassword) {
@@ -56,61 +57,70 @@ export class UserService extends BaseService<User> {
             if (!valid) {
                 throw new ApiError("Update Password Error", 500, "Current user password is invalid.")
             }
-            user.update({
+            this.update({
                 password: bcrypt.hashSync(request.newPassword, salt)
-            })
+            }, token.email, 'email');
+            this.createActivityEntry(ActivityTypes.PASSWORD_CHANGE, user.id);
         } catch (e) {
             throw new ApiError("Update User Error", 500, e.message)
         }
     }
 
     public async authenticate(request: Authentication): Promise<AuthenticationResponse> {
-        const user = await this.db
-            .from(this.tableName)
-            .where('email', request.email)
-            .where('status', Status.ACTIVE)
-            .first();
-        // console.log(user);
-        if (!user) {
-            throw new AuthError("Authentication Error", 401, "Invalid user.")
+        try {
+            const user = await this.db
+                .from(this.tableName)
+                .where('email', request.email)
+                .where('status', Status.ACTIVE)
+                .first();
+            // console.log(user);
+            if (!user) {
+                throw new AuthError("Authentication Error", 401, "Invalid user.")
+            }
+            const valid = await bcrypt.compare(request.password, user.password);
+            if (!valid) {
+                throw new AuthError("Authentication Error", 401, "Invalid password.")
+            }
+            this.createActivityEntry(ActivityTypes.USER_LOGIN, request.email);
+            return this.createSession(user, request.callbackURL);
+        } catch (e) {
+            throw new AuthError("Authentication Error", 500, e.message)
         }
-        const valid = await bcrypt.compare(request.password, user.password);
-        if (!valid) {
-            throw new AuthError("Authentication Error", 401, "Invalid password.")
-        }
-        return this.createSession(user, request.callbackURL);
     }
 
     public async refreshToken(request: any, token: string): Promise<AuthenticationResponse> {
-        const userSessionToken = await this.cache.get(request.sessionId);
-        if (userSessionToken != token) {
-            throw new AuthError("Authentication Error", 401, "Invalid token.")
+        try {
+            const userSessionToken = await this.cache.get(request.sessionId);
+            if (userSessionToken != token) {
+                throw new AuthError("Authentication Error", 401, "Invalid token.")
+            }
+            const user = await this.db
+                .from(this.tableName)
+                .where('email', request.email)
+                .where('status', Status.ACTIVE)
+                .first();
+            if (!user) {
+                throw new AuthError("Authentication Error", 401, "Invalid user.")
+            }
+            this.createActivityEntry(ActivityTypes.USER_TOKEN_REFRESH, request.email);
+            return this.createSession(user);
+        } catch (e) {
+            throw new AuthError("Authentication Error", 500, e.message)
         }
-        const user = await this.db
-            .from(this.tableName)
-            .where('email', request.email)
-            .where('status', Status.ACTIVE)
-            .first();
-        if (!user) {
-            throw new AuthError("Authentication Error", 401, "Invalid user.")
-        }
-        return this.createSession(user);
     }
 
-    public async logout(sessionId: string) {
-        await this.cache.del(sessionId);
+    public async logout(token: string, email: string) {
+        try {
+            await this.cache.del(token);
+            this.createActivityEntry(ActivityTypes.USER_LOGOUT, email);
+        } catch (e) {
+            throw new AuthError("Authentication Error", 500, e.message)
+        }
     }
 
     ////////////////////////////// Private Functions ////////////////////////////
-    private async getRole(role: string) {
-        const collection = await this.db
-            .from(TABLE_ROLES)
-            .where('id', role)
-            .first();
-        return collection;
-    }
-
     private async createSession(user: User, callbackUrl?: string): Promise<AuthenticationResponse> {
+        const expiry = parseInt(JWT_EXPIRY) || 3600;
         const role = await this.db
             .from(TABLE_ROLES)
             .where('id', user.roleId)
@@ -126,11 +136,11 @@ export class UserService extends BaseService<User> {
             appAccess: role.appAccess,
             sessionId: uuidv4()
         }
-        const token = jwt.sign(tokenBody, SECRET_KEY, { expiresIn: '1h', issuer: TOKEN_ISSUER });
+        const token = jwt.sign(tokenBody, SECRET_KEY, { expiresIn: expiry, issuer: TOKEN_ISSUER });
         // console.log(token);
         // Create session entry in database
         const expiresIn = new Date();
-        expiresIn.setHours(expiresIn.getHours() + 1);
+        expiresIn.setHours(expiresIn.getSeconds() + expiry);
         await this.cache.set(tokenBody.sessionId, token);
         await this.cache.expireAt(tokenBody.sessionId, expiresIn);
         return {

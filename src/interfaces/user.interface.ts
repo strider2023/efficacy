@@ -15,11 +15,12 @@ export interface CreateUser {
 }
 
 export interface UpdateUser {
-    firstname: string
+    firstname?: string
     middlename?: string
-    lastname: string
+    lastname?: string
     phone?: string
-    roleId: string
+    email?: string
+    roleId?: string
     dob?: Date
     image?: string
     location?: string

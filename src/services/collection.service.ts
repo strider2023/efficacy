@@ -8,8 +8,8 @@ import { Status } from "../enums";
 
 export class CollectionService extends BaseService<Collections> {
 
-    constructor() {
-        super(TABLE_COLLECTIONS, 'Collections')
+    constructor(email: string) {
+        super(TABLE_COLLECTIONS, 'Collections', email);
     }
 
     public async syncCollections() {
@@ -30,34 +30,9 @@ export class CollectionService extends BaseService<Collections> {
                 throw new ApiError(`Error creating entry in ${this.entityName}`, 500, `Collection by the ${request.collectionId} already exists.`);
             }
             await new SchemaBuilder().createTable(request)
-            this.create({ ...request, version: 1 });
+            this.create(request);
         } catch (e) {
             throw new ApiError(`Error creating entry in ${this.entityName}`, 500, e.message);
-        }
-    }
-
-    public async updateCollection(request: UpdateCollection, collectionId: string) {
-        try {
-            // Get latest version
-            const collection = await this.get(collectionId);
-            let updatedCollection = {
-                collectionId: collectionId,
-                displayName: request.displayName || collection.displayName,
-                description: request.description || collection.description,
-                schemaName: collection.schemaName,
-                tableName: collection.tableName,
-                permissions: request.permissions || collection.permissions,
-                version: collection.version + 1,
-                useTimestamps: collection.useTimestamps
-            }
-            this.create(updatedCollection);
-            // Change previous version status
-            await this.db
-                .into(this.tableName)
-                .where('id', collection.id)
-                .update({ status: Status.DELETED, isLatest: false });
-        } catch (e) {
-            throw new ApiError(`Error updating entry in ${this.entityName}`, 500, e.message);
         }
     }
 
@@ -72,30 +47,7 @@ export class CollectionService extends BaseService<Collections> {
         }
     }
 
-    public async get(collectionId: string): Promise<Collections> {
-        try {
-            const response = await this.db
-                .from(this.tableName)
-                .where('collectionId', collectionId)
-                .where('isLatest', true)
-                .where('status', Status.ACTIVE)
-                .first();
-            return response;
-        } catch (e) {
-            throw new ApiError(`Error fetching entry from ${this.entityName}`, 500, e.message);
-        }
-    }
-
-    public async getHistory(collectionId: string): Promise<Collections[]> {
-        try {
-            const response = await this.db
-                .from(this.tableName)
-                .where('collectionId', collectionId);
-            return response;
-        } catch (e) {
-            throw new ApiError(`Error fetching entry from ${this.entityName}`, 500, e.message);
-        }
-    }
+    //////////////////// Private Functions //////////////////////////
 
     private async deteleCollectionProperties(collectionId: string) {
         try {
