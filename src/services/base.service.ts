@@ -68,6 +68,9 @@ export abstract class BaseService<BaseSchema> {
                 .where(key, value)
                 .where('status', status)
                 .first();
+            if (!resp) {
+                return null;
+            }
             return _.omit(resp, ['createdAt', 'updatedAt']);
         } catch (e) {
             throw new ApiError(`Error fetching entry from ${this.entityName}`, 500, e.message);

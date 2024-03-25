@@ -66,12 +66,13 @@ app.use((_req, res: Response) => {
 app.use(errorHandlerMiddleware);
 
 try {
-    server = app.listen(PORT, () => {
+    server = app.listen(PORT, async () => {
         console.log("Server is running on port: " + PORT);
         RedisClient.getInstance().connect();
-        migrate().then(() => {
-            seed();
-        });
+        const resp = await migrate();
+        if (resp) {
+            await seed();
+        }
     });
 } catch (e) {
     console.error(e)
