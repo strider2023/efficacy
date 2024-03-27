@@ -3,6 +3,7 @@ import { UserService } from "../services";
 import { AppGetAll, AppQueryParams, UpdatePassword, CreateUser, UpdateUser } from "../interfaces";
 import * as bcrypt from 'bcrypt'
 import { ApiError } from "../errors";
+import { Status } from "../enums";
 
 @Route("api/user")
 @Tags("Efficacy User APIs")
@@ -13,7 +14,8 @@ export class UserController extends Controller {
     public async getUsers(
         @Queries() queryParams: AppQueryParams
     ): Promise<AppGetAll> {
-        return new UserService().getAll(queryParams);
+        queryParams.properties = ['firstname', 'middlename', 'lastname', 'phone', 'email'];
+        return new UserService().getAll(queryParams, Status.ACTIVE);
     }
 
     @SuccessResponse("201", "Created") 

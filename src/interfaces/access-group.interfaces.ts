@@ -8,7 +8,7 @@ export interface CreateRole {
 }
 
 export interface UpdateRole {
-    displayName: string
+    displayName?: string
     description?: string
     adminAccess?: boolean
     portalAccess?: boolean
