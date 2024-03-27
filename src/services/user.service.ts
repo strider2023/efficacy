@@ -22,20 +22,14 @@ export class UserService extends BaseService<User> {
 
     public async registerUser(request: CreateUser): Promise<AuthenticationResponse> {
         try {
-            let user = await this.db
-                .from(this.tableName)
-                .where('email', request.email)
-                .where('status', Status.ACTIVE)
-                .first();
+            let user = await this.get(request.email, 'email');
             if (user) {
                 throw new AuthError("Permission Error", 403, "User with given email id already exists.")
             }
             const salt = bcrypt.genSaltSync(10);
             request.password = bcrypt.hashSync(request.password, salt);
-            user = await this.db
-                .into(this.tableName)
-                .insert(request);
-            this.createActivityEntry(ActivityTypes.USER_CREATED, request.email);
+            user = await this.create(request, ['id', 'firstname', 'lastname', 'email', 'roleId']);
+            this.createActivityEntry(ActivityTypes.USER_CREATED, user.id);
             return this.createSession(user);
         } catch (e) {
             throw new AuthError("User Registration Error", 500, e.message);
