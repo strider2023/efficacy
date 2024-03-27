@@ -25,7 +25,7 @@ export class CollectionService extends BaseService<Collections> {
             if (SYSTEM_TABLES.includes(request.tableName)) {
                 throw new ApiError("Collection Creation Error", 500, "Table name is system reserved.")
             }
-            const collection = await this.get(request.collectionId);
+            const collection = await this.get(request.collectionId, 'collectionId');
             if (collection) {
                 throw new ApiError(`Error creating entry in ${this.entityName}`, 500, `Collection by the ${request.collectionId} already exists.`);
             }
@@ -38,7 +38,7 @@ export class CollectionService extends BaseService<Collections> {
 
     public async deleteCollection(collectionId: string) {
         try {
-            const collection = await this.get(collectionId);
+            const collection = await this.get(collectionId, 'collectionId');
             await new SchemaBuilder().removeTable(collection.schemaName, collection.tableName);
             this.delete(collectionId, 'collectionId');
             this.deteleCollectionProperties(collectionId);

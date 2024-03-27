@@ -30,7 +30,7 @@ export class CollectionController extends Controller {
     public async get(
         @Path() collectionId: string
     ): Promise<Collections> {
-        return new CollectionService(null).get(collectionId);
+        return new CollectionService(null).get(collectionId, 'collectionId');
     }
 
     @SuccessResponse("201", "Created")

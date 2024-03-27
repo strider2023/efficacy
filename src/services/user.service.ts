@@ -68,11 +68,7 @@ export class UserService extends BaseService<User> {
 
     public async authenticate(request: Authentication): Promise<AuthenticationResponse> {
         try {
-            const user = await this.db
-                .from(this.tableName)
-                .where('email', request.email)
-                .where('status', Status.ACTIVE)
-                .first();
+            const user = await this.get(request.email, 'email');
             // console.log(user);
             if (!user) {
                 throw new AuthError("Authentication Error", 401, "Invalid user.")
@@ -81,45 +77,43 @@ export class UserService extends BaseService<User> {
             if (!valid) {
                 throw new AuthError("Authentication Error", 401, "Invalid password.")
             }
-            this.createActivityEntry(ActivityTypes.USER_LOGIN, request.email);
-            return this.createSession(user, request.callbackURL);
+            this.createActivityEntry(ActivityTypes.USER_LOGIN, user.id);
+            return this.createSession(user, null, request.callbackURL);
         } catch (e) {
             throw new AuthError("Authentication Error", 500, e.message)
         }
     }
 
-    public async refreshToken(request: any, token: string): Promise<AuthenticationResponse> {
+    public async refreshToken(token: string): Promise<AuthenticationResponse> {
         try {
-            const userSessionToken = await this.cache.get(request.sessionId);
+            const decoded: any = jwt.verify(token, SECRET_KEY);
+            const userSessionToken = await this.cache.get(decoded.sessionId);
             if (userSessionToken != token) {
                 throw new AuthError("Authentication Error", 401, "Invalid token.")
             }
-            const user = await this.db
-                .from(this.tableName)
-                .where('email', request.email)
-                .where('status', Status.ACTIVE)
-                .first();
+            const user = await this.get(decoded.email, 'email');
             if (!user) {
                 throw new AuthError("Authentication Error", 401, "Invalid user.")
             }
-            this.createActivityEntry(ActivityTypes.USER_TOKEN_REFRESH, request.email);
-            return this.createSession(user);
+            this.createActivityEntry(ActivityTypes.USER_TOKEN_REFRESH, user.id);
+            return this.createSession(user, decoded.sessionId);
         } catch (e) {
             throw new AuthError("Authentication Error", 500, e.message)
         }
     }
 
-    public async logout(token: string, email: string) {
+    public async logout(sessionId: string, email: string) {
         try {
-            await this.cache.del(token);
-            this.createActivityEntry(ActivityTypes.USER_LOGOUT, email);
+            await this.cache.del(sessionId);
+            const user = await this.get(email, 'email');
+            this.createActivityEntry(ActivityTypes.USER_LOGOUT, user.id);
         } catch (e) {
             throw new AuthError("Authentication Error", 500, e.message)
         }
     }
 
     ////////////////////////////// Private Functions ////////////////////////////
-    private async createSession(user: User, callbackUrl?: string): Promise<AuthenticationResponse> {
+    private async createSession(user: User, sessionId?: string, callbackUrl?: string): Promise<AuthenticationResponse> {
         const expiry = parseInt(JWT_EXPIRY) || 3600;
         const role = await this.db
             .from(TABLE_ROLES)
@@ -134,7 +128,7 @@ export class UserService extends BaseService<User> {
             adminAccess: role.adminAccess,
             portalAccess: role.portalAccess,
             appAccess: role.appAccess,
-            sessionId: uuidv4()
+            sessionId: sessionId || uuidv4()
         }
         const token = jwt.sign(tokenBody, SECRET_KEY, { expiresIn: expiry, issuer: TOKEN_ISSUER });
         // console.log(token);

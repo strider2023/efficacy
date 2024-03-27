@@ -40,7 +40,7 @@ export class SchemaBuilder {
         try {
             await getDatabaseAdapter().schema.withSchema(request.schemaName || 'public')
                 .createTable(request.tableName, function (t) {
-                    t.uuid("id", { primaryKey: true }).defaultTo(getDatabaseAdapter().raw("uuid_generate_v4()"));
+                    t.uuid("id", { primaryKey: true }).defaultTo(getDatabaseAdapter().fn.uuid());
                     if (request.useTimestamps) {
                         t.timestamps({ useCamelCase: true, useTimestamps: true, defaultToNow: true });
                     }

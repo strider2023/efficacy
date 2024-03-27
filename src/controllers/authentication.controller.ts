@@ -22,10 +22,9 @@ export class AuthenticationController extends Controller {
 
     @Post("/refresh")
     public async refreshToken(
-        @Body() exReq: RefershToken,
-        @Request() request: any,
+        @Body() exReq: RefershToken
     ): Promise<AuthenticationResponse> {
-        return new UserService().refreshToken(request.user, exReq.token);
+        return new UserService().refreshToken(exReq.token);
     }
 
     @SuccessResponse("200", "Updated") 
@@ -35,7 +34,7 @@ export class AuthenticationController extends Controller {
         @Request() request: any,
     ): Promise<void> {
         const token = request.headers['authorization'];
-        new UserService().logout(token, request.user.email);
+        new UserService().logout(request.user.sessionId, request.user.email);
         return;
     }
 }
